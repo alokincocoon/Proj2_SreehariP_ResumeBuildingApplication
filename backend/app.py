@@ -4,7 +4,7 @@ from database import session
 from litestar import Litestar, get, post, put, delete, Request
 from models import ApplicantDetails, AddressDetails, Skills, Projects, Education, WorkExperience, SocialMedia
 
-@get("/show-data/", name="all_records")
+@get("/resumes/", name="get_all_resumes")
 async def show_all_data() -> json:
     """This function will fetch all records from the DB
     to display in the listing page.
@@ -21,7 +21,7 @@ async def show_all_data() -> json:
         json_data = json.dumps(all_records)
     return json_data
     
-@get("/show-data/{field_id: int}", name="record_by_id")
+@get("/resume/{field_id: int}", name="get_resume_by_id")
 async def show_data_by_id(field_id: int) -> json:
     """This function will fetch records according to their id."""
 
@@ -68,8 +68,7 @@ async def show_data_by_id(field_id: int) -> json:
     json_data = json.dumps(all_data)
     return json_data
 
-# not working.....
-@get("/show-data/{field_val: str}", name="record_by_field")
+@get("/find-resume/{field_val: str}", name="find_resume_by_field")
 async def show_data_by_field(field_val: str) -> json:
     """This function will fetch records according to their email id."""
     record = session.query(ApplicantDetails).filter_by(email_id=field_val).first()
@@ -199,4 +198,4 @@ async def delete_data(applicant_id: int) -> None:
         session.close()
         return None
 
-app = Litestar([show_all_data, show_data_by_id, add_data, edit_data, delete_data])
+app = Litestar([show_all_data, show_data_by_id, show_data_by_field, add_data, edit_data, delete_data])
