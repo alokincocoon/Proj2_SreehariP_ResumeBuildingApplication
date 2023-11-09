@@ -4,6 +4,37 @@ from database import session
 from litestar import Litestar, get, post, put, delete, Request
 from models import ApplicantDetails, AddressDetails, Skills, Projects, Education, WorkExperience, SocialMedia
 
+def cleaned_record(record):
+    """This method will clean the incoming record by removing 
+    the un-necessary keys and it's values.
+    """
+    for key in ["_sa_instance_state", "applicant_details_id", "id"]:
+        record.pop(key)
+    return record
+
+def list_of_dict(records):
+    """This method will return a list of dictionary if
+    there are multiple records present in a table which 
+    is related to a single id.
+    """
+    final_list = []
+    for item in records:
+        record = item.__dict__
+        record = cleaned_record(record)
+        final_list.append(record)
+    return final_list
+
+def final_data(record):
+    """This method will return the data as a dictionary if
+    only a single record exists in the table belonging to an id
+    or else it will return a list of dictionary as data.
+    """
+    if record.count() == 1:
+        record = cleaned_record(record.first().__dict__)
+    else:
+        record = list_of_dict(record.all())
+    return record
+
 @get("/resumes/", name="get_all_resumes")
 async def show_all_data() -> json:
     """This function will fetch all records from the DB
@@ -34,37 +65,23 @@ async def show_data_by_id(field_id: int) -> json:
     all_data["applicant_details"] = applicant_record
 
     address_record = session.query(AddressDetails).filter_by(applicant_details_id=field_id).first().__dict__
-    for key in ["_sa_instance_state", "applicant_details_id", "id"]:
-        address_record.pop(key)
-    all_data["address_details"] = address_record
+    all_data["address_details"] = cleaned_record(address_record)
 
-    skills_record = session.query(Skills).filter_by(applicant_details_id=field_id).all()
-    skills = []
-    for item in skills_record:
-        record = item.__dict__
-        for key in ["_sa_instance_state", "applicant_details_id", "id"]:
-            record.pop(key)
-        skills.append(record)
-    all_data["skills"] = skills
+    skills_record = session.query(Skills).filter_by(applicant_details_id=field_id)
+    all_data["skills"] = final_data(skills_record)
 
-    projects_record = session.query(Projects).filter_by(applicant_details_id=field_id).all()
-    projects = []
-    for item in projects_record:
-        record = item.__dict__
-        for key in ["_sa_instance_state", "applicant_details_id", "id"]:
-            record.pop(key)
-        projects.append(record)
-    all_data["projects"] = projects
+    projects_record = session.query(Projects).filter_by(applicant_details_id=field_id)
+    all_data["projects"] = final_data(projects_record)
 
-    media_record = session.query(SocialMedia).filter_by(applicant_details_id=field_id).all()
-    media = []
-    for item in media_record:
-        record = item.__dict__
-        for key in ["_sa_instance_state", "applicant_details_id", "id"]:
-            record.pop(key)
-        media.append(record)
-    all_data["social_media"] = media
-   
+    media_record = session.query(SocialMedia).filter_by(applicant_details_id=field_id)
+    all_data["social_media"] = final_data(media_record)
+    
+    education_record = session.query(Education).filter_by(applicant_details_id=field_id)
+    # all_data["education"] = final_data(education_record)
+
+    work_record = session.query(WorkExperience).filter_by(applicant_details_id=field_id)
+    # all_data["work_experience"] = final_data(work_record)
+
     json_data = json.dumps(all_data)
     return json_data
 
@@ -77,7 +94,7 @@ async def show_data_by_field(field_val: str) -> json:
     json_data = json.dumps(data)
     return json_data
 
-@post("/add-data")
+@post("/new-resume")
 async def add_data(request: Request, data:  dict[str, Any]) -> str:
     """This function will save the applicant's details 
     to the Database.
@@ -105,70 +122,126 @@ async def add_data(request: Request, data:  dict[str, Any]) -> str:
         zip_code=data["address_details"]["zip_code"]
     )
     if address_details:
+        print(address_details)
         session.add(address_details)
     
-    # levels_of_education is a variable to check number of places studied
-    levels_of_education = len(data["education"])
-    for entry in range(levels_of_education):
-        #  education variable saves data to Education model
+    if type(data["education"]) is list:
+        levels_of_education = len(data["education"])
+        for entry in range(levels_of_education):
+            education = Education(
+                applicant_details_id=data["applicant_details"]["id"],
+                degree=data["education"][entry]["degree"],
+                stream=data["education"][entry]["stream"],
+                institute_name=data["education"][entry]["institute_name"],
+                institute_location=data["education"][entry]["institute_location"],
+                academic_year_start_date=data["education"][entry]["academic_year_start_date"],
+                academic_year_end_date=data["education"][entry]["academic_year_end_date"]
+            )
+            if education:
+                session.add(education)
+    else:
         education = Education(
             applicant_details_id=data["applicant_details"]["id"],
-            degree=data["education"]["degree"],
-            stream=data["education"]["stream"],
-            institute_name=data["education"]["institute_name"],
-            institute_location=data["education"]["institute_location"],
-            academic_year_start_date=data["education"]["academic_year_start_date"],
-            academic_year_end_date=data["education"]["academic_year_end_date"]
+            degree=data["education"][entry]["degree"],
+            stream=data["education"][entry]["stream"],
+            institute_name=data["education"][entry]["institute_name"],
+            institute_location=data["education"][entry]["institute_location"],
+            academic_year_start_date=data["education"][entry]["academic_year_start_date"],
+            academic_year_end_date=data["education"][entry]["academic_year_end_date"]
         )
         if education:
-            session.add(education)
+            session.add(education) 
 
-    places_worked = len(data["work_experience"])
-    for entry in range(places_worked):
+    if type(data["work_experience"]) is list:
+        places_worked = len(data["work_experience"])
+        for entry in range(places_worked):
+            work_experience = WorkExperience(
+                applicant_details_id=data["applicant_details"]["id"],
+                organization=data["work_experience"][entry]["organization"],
+                job_role=data["work_experience"][entry]["job_role"],
+                job_location=data["work_experience"][entry]["job_location"],
+                key_roles=data["work_experience"][entry]["key_roles"],
+                job_start_date=data["work_experience"][entry]["job_start_date"],
+                job_end_date=data["work_experience"][entry]["job_end_date"]
+            )
+            if work_experience:
+                print(work_experience)
+                session.add(work_experience)
+    else:
         work_experience = WorkExperience(
-            applicant_details_id=data["applicant_details"]["id"],
-            organization=data["work_experience"][entry]["organization"],
-            job_role=data["work_experience"][entry]["job_role"],
-            job_location=data["work_experience"][entry]["job_location"],
-            key_roles=data["work_experience"][entry]["key_roles"],
-            job_start_date=data["work_experience"][entry]["job_start_date"],
-            job_end_date=data["work_experience"][entry]["job_end_date"]
-        )
+                applicant_details_id=data["applicant_details"]["id"],
+                organization=data["work_experience"]["organization"],
+                job_role=data["work_experience"]["job_role"],
+                job_location=data["work_experience"]["job_location"],
+                key_roles=data["work_experience"]["key_roles"],
+                job_start_date=data["work_experience"]["job_start_date"],
+                job_end_date=data["work_experience"]["job_end_date"]
+            )
         if work_experience:
+            print(work_experience)
             session.add(work_experience)
-
-    existing_accounts = len(data["social_media"])
-    for entry in range(existing_accounts):
+    
+    if type(data["social_media"]) is list:
+        existing_accounts = len(data["social_media"])
+        for entry in range(existing_accounts):
+            social_media = SocialMedia(
+                applicant_details_id=data["applicant_details"]["id"],
+                media_name=data["social_media"][entry]["media_name"],
+                user_name=data["social_media"][entry]["user_name"],
+                url=data["social_media"][entry]["url"]
+            )
+            if social_media:
+                session.add(social_media)
+    else:
         social_media = SocialMedia(
-            applicant_details_id=data["applicant_details"]["id"],
-            media_name=data["social_media"][entry]["media_name"],
-            user_name=data["social_media"][entry]["user_name"],
-            url=data["social_media"][entry]["url"]
-        )
+                applicant_details_id=data["applicant_details"]["id"],
+                media_name=data["social_media"]["media_name"],
+                user_name=data["social_media"]["user_name"],
+                url=data["social_media"]["url"]
+            )
         if social_media:
-            session.add(social_media)
-
-    number_of_skills = len(data["skills"])
-    for entry in range(number_of_skills):
+                session.add(social_media)
+    
+    if type(data["skills"]) is list:
+        number_of_skills = len(data["skills"])
+        for entry in range(number_of_skills):
+            skills = Skills(
+                applicant_details_id=data["applicant_details"]["id"],
+                skill_name=data["skills"][entry]["skill_name"],
+                skill_level=data["skills"][entry]["skill_level"]
+            )
+            if skills:
+                session.add(skills)
+    else:
         skills = Skills(
             applicant_details_id=data["applicant_details"]["id"],
-            skill_name=data["skills"][entry]["skill_name"],
-            skill_level=data["skills"][entry]["skill_level"]
+            skill_name=data["skills"]["skill_name"],
+            skill_level=data["skills"]["skill_level"]
         )
         if skills:
             session.add(skills)
 
-    number_of_projects = len(data["projects"])
-    for entry in range(number_of_projects):
+    if type(data["projects"]) is list:
+        number_of_projects = len(data["projects"])
+        for entry in range(number_of_projects):
+            projects = Projects(
+                applicant_details_id=data["applicant_details"]["id"],
+                project_title=data["projects"][entry]["project_title"],
+                tools_used=data["projects"][entry]["tools_used"],
+                description=data["projects"][entry]["description"],     
+            )
+            if projects:
+                session.add(projects)
+    else:
         projects = Projects(
-            applicant_details_id=data["applicant_details"]["id"],
-            project_title=data["projects"][entry]["project_title"],
-            tools_used=data["projects"][entry]["tools_used"],
-            description=data["projects"][entry]["description"],     
-        )
+                applicant_details_id=data["applicant_details"]["id"],
+                project_title=data["projects"]["project_title"],
+                tools_used=data["projects"]["tools_used"],
+                description=data["projects"]["description"],     
+            )
         if projects:
             session.add(projects)
-      
+
     session.commit()
     session.close()
     return "Record added successfully."
