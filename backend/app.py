@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from typing import Any
 from database import session
 from litestar import Litestar, get, post, put, delete, Request
@@ -15,7 +16,7 @@ def cleaned_record(record):
 def list_of_dict(records):
     """This method will return a list of dictionary if
     there are multiple records present in a table which 
-    is related to a single id.
+    is related to a single id. 
     """
     final_list = []
     for item in records:
@@ -24,10 +25,33 @@ def list_of_dict(records):
         final_list.append(record)
     return final_list
 
+def final_data_with_date(records):
+    """This method is used to process the records with date fields;
+    only to make sure that the date values from DB will be returned 
+    as string for effective json processing.
+    """
+    if records.count() == 1:
+        record = records.first().__dict__
+        record = cleaned_record(record)
+        new_record = {}
+        if record:
+            for key,value in record.items():
+                new_record[key] = str(value)
+        return new_record
+    elif records.count() > 1:
+        record_lis = []
+        for record in records.all():
+            record = cleaned_record(record.__dict__)
+            for key,value in record.items():
+                record[key] = str(value)
+            record_lis.append(record)
+        return record_lis
+  
 def final_data(record):
     """This method will return the data as a dictionary if
-    only a single record exists in the table belonging to an id
-    or else it will return a list of dictionary as data.
+    only a single record exists in the table belonging to a 
+    particular id or else it will return a list of dictionary 
+    as data.
     """
     if record.count() == 1:
         record = cleaned_record(record.first().__dict__)
@@ -37,7 +61,7 @@ def final_data(record):
 
 @get("/resumes/", name="get_all_resumes")
 async def show_all_data() -> json:
-    """This function will fetch all records from the DB
+    """This function will fetch all resumes from the DB
     to display in the listing page.
     """
     records = session.query(ApplicantDetails).all()
@@ -77,12 +101,10 @@ async def show_data_by_id(field_id: int) -> json:
     all_data["social_media"] = final_data(media_record)
     
     education_record = session.query(Education).filter_by(applicant_details_id=field_id)
-    # print(type(education_record))
-    # print(final_data(education_record))
-    # all_data["education"] = final_data(education_record)
-
+    all_data["education"] = final_data_with_date(education_record)
+    
     work_record = session.query(WorkExperience).filter_by(applicant_details_id=field_id)
-    # all_data["work_experience"] = final_data(work_record)
+    all_data["work_experience"] = final_data_with_date(work_record)
 
     json_data = json.dumps(all_data)
     return json_data
