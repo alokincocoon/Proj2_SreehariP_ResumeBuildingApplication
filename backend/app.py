@@ -203,7 +203,7 @@ async def add_data(request: Request, data:  dict[str, Any]) -> str:
             )
             if projects:
                 session.add(projects)
-                
+
     # The received data is commited to the database
     session.commit()
     session.close()
@@ -211,16 +211,27 @@ async def add_data(request: Request, data:  dict[str, Any]) -> str:
 
 @put("/edit-data/{applicant_id: int}")
 async def edit_data(applicant_id: int, data: dict[str, Any]) -> str:
-    applicant_detail_record = session.query(ApplicantDetails).filter_by(id=applicant_id).first()
-   
-    if applicant_detail_record:
-        applicant_detail_record.full_name = data["full_name"]
-        applicant_detail_record.email_id = data["email_id"]
-        applicant_detail_record.phone_number = data["phone_number"]
-        applicant_detail_record.image_url = data["image_url"]
-        applicant_detail_record.summary = data["summary"]
 
-    session.add(applicant_detail_record)
+    applicant_detail_record = session.query(ApplicantDetails).filter_by(id=applicant_id).first()
+    if applicant_detail_record:
+        applicant_detail_record.full_name = data["applicant_details"]["full_name"]
+        applicant_detail_record.email_id = data["applicant_details"]["email_id"]
+        applicant_detail_record.phone_number = data["applicant_details"]["phone_number"]
+        applicant_detail_record.image_url = data["applicant_details"]["image_url"]
+        applicant_detail_record.summary = data["applicant_details"]["summary"]
+        session.add(applicant_detail_record)
+
+    address_detail_record = session.query(AddressDetails).filter_by(id=applicant_id).first()
+    if address_detail_record:
+        address_detail_record.address_line = data["applicant_details"]["address_line"]
+        address_detail_record.street_name = data["applicant_details"]["street_name"]
+        address_detail_record.city = data["applicant_details"]["city"]
+        address_detail_record.country = data["applicant_details"]["country"]
+        address_detail_record.zip_code = data["applicant_details"]["zip_code"]
+        session.add(address_detail_record)
+
+    # education_detail_record = session.query(Education).filter_by(id=applicant_id).first()
+    
     session.commit()
     session.close()
     return "Updated"
