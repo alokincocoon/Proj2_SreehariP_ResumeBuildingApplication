@@ -10,7 +10,7 @@
 <style>
     .save{
         width: 100px;
-        background-color: #209FA4;
+        background-color: teal;
         color: white;
         border-radius: 5px;
         margin: 10px 5px 10px 5px;
@@ -22,5 +22,8 @@
         color: black;
         border-radius: 5px;
         margin: 10px 5px 10px 5px;
+    }
+    button:hover{
+        cursor: pointer;
     }
 </style>

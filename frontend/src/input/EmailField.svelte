@@ -39,25 +39,14 @@
         width: 80%;
         height: 43px;
     }
-    /* input[type="text"] {
-        width: 100%;
-        height: 38px;
-        padding-left: 5px;
-        border-radius: 0px;
-        margin: 0px;
-    } */
+
     input[type="email"] {
         width: 100%;
         height: 43px;
         padding-left: 5px;
+        border: none;
         border-radius: 0px;
         margin: 0px;
     }
-    /* input[type="date"] {
-        width: 100%;
-        height: 38px;
-        padding-left: 5px;
-        border-radius: 0px;
-        margin: 0px;
-    } */
+ 
 </style>
