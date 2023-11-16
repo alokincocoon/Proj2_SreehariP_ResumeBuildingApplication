@@ -1,8 +1,11 @@
 import json
 from typing import Any
 from database import session
+# from litestar.middleware.cors import CORSMiddleware
+from litestar.config.cors import CORSConfig
 from litestar import Litestar, get, post, put, delete, Request
 from models import ApplicantDetails, AddressDetails, Skills, Projects, Education, WorkExperience, SocialMedia
+
 
 def cleaned_record(record):
     """This method will clean the incoming record by removing 
@@ -109,13 +112,14 @@ async def show_data_by_field(field_val: str) -> json:
     return json_data
 
 @post("/new-resume")
-async def add_data(request: Request, data:  dict[str, Any]) -> str:
+async def add_data(request: Request, data:  dict[str, Any]) -> json:
     """This function will save the incoming data to the DB, to their
     corresponding tables. 'applicant_details' is an object of ApplicantDetails 
     model which is used to save the data to ApplicantDetails model.
     """
+    # print(data)
+    commit_flag = False
     applicant_details  = ApplicantDetails(
-        id=data["applicant_details"].get("id"), 
         full_name=data["applicant_details"].get("full_name"), 
         email_id=data["applicant_details"].get("email_id"), 
         phone_number=data["applicant_details"].get("phone_number"), 
@@ -123,11 +127,19 @@ async def add_data(request: Request, data:  dict[str, Any]) -> str:
         summary=data["applicant_details"].get("summary")
     )
     if applicant_details:
+        pass
         session.add(applicant_details)
+        session.commit()
+        commit_flag = True
+        
+    if commit_flag:
+        records = session.query(ApplicantDetails).all()
+        record_lis = [rec.__dict__ for rec in records]
+        *_, applicant_data = record_lis
 
     #  address_details object which saves data to AddressDetails model
     address_details = AddressDetails(
-        applicant_details_id=data["applicant_details"].get("id"),
+		applicant_details_id=applicant_data["id"],
         address_line=data["address_details"].get("address_line"),
         street_name=data["address_details"].get("street_name"),
         city=data["address_details"].get("city"),
@@ -135,6 +147,7 @@ async def add_data(request: Request, data:  dict[str, Any]) -> str:
         zip_code=data["address_details"].get("zip_code")
     )
     if address_details:
+        # pass
         session.add(address_details)
     
     # Here the values are retrieved from a nested dictionary
@@ -143,7 +156,7 @@ async def add_data(request: Request, data:  dict[str, Any]) -> str:
         levels_of_education = len(data["education"])
         for entry in range(levels_of_education):
             education = Education(
-                applicant_details_id=data["applicant_details"].get("id"),
+				applicant_details_id=applicant_data["id"],
                 degree=data["education"][entry].get("degree"),
                 stream=data["education"][entry].get("stream"),
                 institute_name=data["education"][entry].get("institute_name"),
@@ -158,7 +171,7 @@ async def add_data(request: Request, data:  dict[str, Any]) -> str:
         places_worked = len(data["work_experience"])
         for entry in range(places_worked):
             work_experience = WorkExperience(
-                applicant_details_id=data["applicant_details"].get("id"),
+				applicant_details_id=applicant_data["id"],
                 organization=data["work_experience"][entry].get("organization"),
                 job_role=data["work_experience"][entry].get("job_role"),
                 job_location=data["work_experience"][entry].get("job_location"),
@@ -167,47 +180,51 @@ async def add_data(request: Request, data:  dict[str, Any]) -> str:
                 job_end_date=data["work_experience"][entry].get("job_end_date")
             )
             if work_experience:
+                # pass
                 session.add(work_experience)
     
     if data["social_media"]:
         existing_accounts = len(data["social_media"])
         for entry in range(existing_accounts):
             social_media = SocialMedia(
-                applicant_details_id=data["applicant_details"].get("id"),
+				applicant_details_id=applicant_data["id"],
                 media_name=data["social_media"][entry].get("media_name"),
                 user_name=data["social_media"][entry].get("user_name"),
                 url=data["social_media"][entry].get("url")
             )
             if social_media:
+                # pass
                 session.add(social_media)
     
     if data["skills"]:
         number_of_skills = len(data["skills"])
         for entry in range(number_of_skills):
             skills = Skills(
-                applicant_details_id=data["applicant_details"].get("id"),
+				applicant_details_id=applicant_data["id"],
                 skill_name=data["skills"][entry].get("skill_name"),
                 skill_level=data["skills"][entry].get("skill_level")
             )
             if skills:
+                # pass
                 session.add(skills)
 
     if data["projects"]:
         number_of_projects = len(data["projects"])
         for entry in range(number_of_projects):
             projects = Projects(
-                applicant_details_id=data["applicant_details"].get("id"),
+				applicant_details_id=applicant_data["id"],
                 project_title=data["projects"][entry].get("project_title"),
                 tools_used=data["projects"][entry].get("tools_used"),
                 description=data["projects"][entry].get("description"),     
             )
             if projects:
+                # pass
                 session.add(projects)
 
     # The received data is commited to the database
     session.commit()
     session.close()
-    return "Record added successfully."
+    return data
 
 @put("/edit-data/{applicant_id: int}")
 async def edit_data(applicant_id: int, data: dict[str, Any]) -> str:
@@ -245,4 +262,20 @@ async def delete_data(applicant_id: int) -> None:
         session.close()
         return None
 
-app = Litestar([show_all_data, show_data_by_id, show_data_by_field, add_data, edit_data, delete_data])
+
+cors_config = CORSConfig(
+    allow_origins=["*"]
+    )
+
+app = Litestar(
+    	route_handlers=[
+			show_all_data, 
+			show_data_by_id, 
+			show_data_by_field, 
+			add_data, 
+			edit_data, 
+			delete_data
+		],
+    	cors_config=cors_config,
+    	debug=True
+    )
