@@ -7,11 +7,11 @@
     export let open = false;
 	const handleClick = () => open = !open;
 
-    export let skills = [{ skill_name: '', level: ''}]
+    export let skills = [{ skill_name: '', skill_level: ''}]
     // export let skill_name = '';
     // export let level = '';
     function addSkill() {
-      skills = [...skills, {skill_name: '', level: ''}];
+      skills = [...skills, {skill_name: '', skill_level: ''}];
     }
     function removeSkill(index) {
       if (skills.length > 1) {
@@ -25,12 +25,14 @@
     {#each skills as skill, i}
     <div class="Active" transition:slide>
         <TextField placeholder = "Add Skill Name" id = "skill-name" label = "Skill Name" bind:value={skill.skill_name} />
-        <SelectField label="Level" options={skill_options} bind:value={skill.level} default_value="Select Skill Level" />
+        <SelectField label="Level" options={skill_options} bind:value={skill.skill_level} default_value="Select Skill Level" />
     </div>
     <div class="extra-fields">
-    <button on:click|preventDefault={addSkill}>Add New Skill</button>
+    <button on:click|preventDefault={addSkill}>
+        <span class="add">+ Add Another</span></button>
     {#if i !== 0}
-        <button on:click|preventDefault={() => removeSkill(i)}>Remove Skill</button>
+        <button on:click|preventDefault={() => removeSkill(i)}>
+            <span class="remove">- Remove</span></button>
     {/if}
     </div>
     {/each}
@@ -45,6 +47,16 @@
     cursor: pointer;
    }
   
+   .add{
+        font-size: 15px;
+        color: teal;
+        font-weight: bold;
+    }
+    .remove{
+        color: red;
+        font-size: 15px;
+        font-weight: bold;
+    }
    .sub-title::before{
        content: '+';
        position: absolute;
@@ -58,12 +70,17 @@
         width: 123px;
         background-color: white;
         color: black;
+        border: none;
         border-radius: 5px;
+   }
+   .extra-fields button:hover{
+    cursor: pointer;
    }
    .content-box{
         border: 1px solid white;
         margin-top: 10px;
         margin-bottom: 10px;
-        box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        /* box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset; */
     }
 </style>

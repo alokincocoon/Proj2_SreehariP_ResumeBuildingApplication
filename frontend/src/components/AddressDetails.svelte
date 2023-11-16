@@ -14,11 +14,12 @@
         "China",
         "Qatar",
     ];
-    export let address = "";
-    export let street = "";
-    export let city = "";
-    export let pincode = "";
-    export let country = "";
+    export let address_line="";
+    export let street_name="";
+    export let city="";
+    export let zip_code="";
+    export let country= "";
+    
 </script>
 
 <main>
@@ -30,13 +31,13 @@
                     placeholder="Add Address Line"
                     id="address"
                     label="Address"
-                    bind:value={address}
+                    bind:value={address_line}
                 />
                 <TextField
                     placeholder="Add Street Name"
                     id="street"
                     label="Street"
-                    bind:value={street}
+                    bind:value={street_name}
                 />
                 <TextField
                     placeholder="Add City Name"
@@ -54,7 +55,7 @@
                     placeholder="Add Pincode"
                     id="pincode"
                     label="Pincode"
-                    bind:value={pincode}
+                    bind:value={zip_code}
                 />
             </div>
         {/if}
@@ -78,6 +79,7 @@
         border: 1px solid white;
         margin-top: 10px;
         margin-bottom: 10px;
-        box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        /* box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset; */
     }
 </style>

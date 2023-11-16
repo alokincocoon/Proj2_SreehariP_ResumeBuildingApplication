@@ -7,11 +7,11 @@
     import { slide } from "svelte/transition";
     const handleClick = () => (open = !open);
 
-    export let social_media = [{ network: "", url: "", user_name: "" }];
+    export let social_media = [{ media_name: "", url: "", user_name: "" }];
     function addSocialData() {
         social_media = [
             ...social_media,
-            { network: "", url: "", user_name: "" },
+            { media_name: "", url: "", user_name: "" },
         ];
     }
     function removeSocialMedia(index) {
@@ -28,34 +28,33 @@
 <div class="contentBox">
     <h3 class="subTitle" on:click={handleClick}>Social Media</h3>
     {#if open}
-        {#each social_media as social_media_data, i}
+        {#each social_media as mediaData, i}
             <div class="Active" transition:slide>
                 <TextField
                     placeholder="Add Network"
                     id="network"
                     label="Network"
-                    bind:value={social_media_data.network}
+                    bind:value={mediaData.media_name}
                 />
                 <UrlField
                     placeholder="Add URL"
                     id="network-url"
                     label="URL"
-                    bind:value={social_media_data.url}
+                    bind:value={mediaData.url}
                 />
                 <TextField
                     placeholder="Add User Name"
                     id="user-name"
                     label="User Name"
-                    bind:value={social_media_data.user_name}
+                    bind:value={mediaData.user_name}
                 />
             </div>
-            <div class="SocialMediaButtons">
-                <button on:click|preventDefault={addSocialData}
-                    >Add New Social Media</button
-                >
+            <div class="extra-fields">
+                <button on:click|preventDefault={addSocialData}>
+                <span class="add">+ Add Another</span></button>
                 {#if i !== 0}
-                    <button on:click|preventDefault={() => removeSocialMedia(i)}
-                        >Remove Social Media</button
+                    <button on:click|preventDefault={() => removeSocialMedia(i)}>
+                        <span class="remove">- Remove</span></button
                     >
                 {/if}
             </div>
@@ -71,24 +70,39 @@
         cursor: pointer;
     }
 
+    .add{
+        font-size: 15px;
+        color: teal;
+        font-weight: bold;
+    }
+    .remove{
+        color: red;
+        font-size: 15px;
+        font-weight: bold;
+    }
     .subTitle::before {
         content: "+";
         position: absolute;
         right: 25px;
     }
-    .SocialMediaButtons{
+    .extra-fields{
         margin-top: 10px;
    }
-   .SocialMediaButtons button{
+   .extra-fields button{
         width: 175px;
         background-color: white;
         color: black;
         border-radius: 5px;
+        border: none;
+   }
+   .extra-fields button:hover{
+    cursor: pointer;
    }
    .contentBox{
         border: 1px solid white;
         margin-top: 10px;
         margin-bottom: 10px;
-        box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        /* box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset; */
     }
 </style>

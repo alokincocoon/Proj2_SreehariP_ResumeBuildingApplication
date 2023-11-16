@@ -6,7 +6,13 @@
     export let open = false;
     const handleClick = () => (open = !open);
     
-    export let [name,email,phone,image_url,summary] = ["","","","",""];
+    export let full_name = "";
+    export let email_id="";
+    export let phone_number="";
+    
+    export let image_url="";
+    export let summary="";
+    // export {full_name,email_id,phone_number,image_url,summary};
     
 </script>
 
@@ -20,13 +26,13 @@
                     id="name"
                     label="Name"
                    
-                    bind:value = "{name}"
+                    bind:value = "{full_name}"
                 />
                 <EmailField 
                     placeholder="Add Email" 
                     id="email" 
                     label="Email"  
-                    bind:value = "{email}"
+                    bind:value = "{email_id}"
                 />
 
                 <TextField
@@ -34,7 +40,7 @@
                     id="phone"
                     label="Phone"
                     
-                    bind:value = "{phone}"
+                    bind:value = "{phone_number}"
                 />
                 <UrlField
                     placeholder="Add Image URL"
@@ -77,7 +83,9 @@
         border: 1px solid white;
         margin-top: 10px;
         margin-bottom: 10px;
-        box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset;
+        box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+        /* box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset; */
     }
+
 
 </style>
