@@ -1,10 +1,16 @@
 from database import engine
+from datetime import datetime
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import String, Column, Date, Integer, ForeignKey
 
 # Base class derived from a mapper
 Base = declarative_base()
+
+def current_date():
+    date_time = datetime.today()
+    actual_date = "%s-%s-%s" % (date_time.year, date_time.month, date_time.day)
+    return actual_date
 
 class ApplicantDetails(Base):
     __tablename__ = "applicant_details"
@@ -21,9 +27,10 @@ class AddressDetails(Base):
 
     id = Column(Integer, primary_key=True)
     applicant_details_id = Column(Integer, ForeignKey("applicant_details.id", ondelete="CASCADE"))
-    address_line = Column(String(300), nullable=False)
-    street_name = Column(String(300), nullable=False)
+    house_name = Column(String(300), nullable=False)
     city = Column(String(200), nullable=False)
+    district = Column(String(300), nullable=False)
+    state = Column(String(300), nullable=False)
     country = Column(String(200), nullable=False)
     zip_code = Column(String(6), nullable=False)
 
@@ -39,8 +46,8 @@ class Education(Base):
     stream = Column(String(50), nullable=False)
     institute_name = Column(String(250), nullable=False)
     institute_location = Column(String(200), nullable=False)
-    academic_year_start_date = Column(Date, nullable=False)
-    academic_year_end_date = Column(Date, nullable=False)
+    academic_year_start_date = Column(Date, default=current_date(), nullable=False)
+    academic_year_end_date = Column(Date, default=current_date(), nullable=False)
 
     # Defining the relationship with parent table
     applicant = relationship("ApplicantDetails", backref=backref("education", passive_deletes=True))
@@ -54,8 +61,8 @@ class WorkExperience(Base):
     job_role = Column(String(150), nullable=True)
     job_location = Column(String(200), nullable=True)
     key_roles = Column(String(300), nullable=True)
-    job_start_date = Column(Date, nullable=True)
-    job_end_date = Column(Date, nullable=True)
+    job_start_date = Column(Date, default=current_date(), nullable=True)
+    job_end_date = Column(Date, default=current_date(), nullable=True)
 
     # Defining the relationship with parent table
     applicant = relationship("ApplicantDetails", backref=backref("work_experience", passive_deletes=True))
