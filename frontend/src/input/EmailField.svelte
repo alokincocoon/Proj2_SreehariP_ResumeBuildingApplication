@@ -1,7 +1,7 @@
 <script>
     // export let type = "";
     export let id = "";
-    export let placeHolder = "";
+    export let placeholder = "";
     export let label = "";
     export let value;
 </script>
@@ -13,7 +13,7 @@
                 <label for={id}>{label}</label>
             </div>
             <div class="email-input">
-                <input {id} type="email" {placeHolder} bind:value />
+                <input {id} type="email" {placeholder} bind:value />
                 <!-- <input {id} type="text" {placeholder} /> -->
             </div>
         </div>
@@ -23,6 +23,7 @@
 <style>
     .email-field {
         display: flex;
+        /* border: none; */
         border: solid 0.1px gray;
         height: 43px;
     }
@@ -41,11 +42,12 @@
     }
 
     input[type="email"] {
-        width: 100%;
-        height: 43px;
+        width: 40%;
+        height: 40px;
         padding-left: 5px;
         border: none;
-        border-radius: 0px;
+        border-bottom: 2px inset teal;
+        border-radius: 5px;
         margin: 0px;
     }
  

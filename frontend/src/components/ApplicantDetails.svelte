@@ -18,7 +18,7 @@
 
 <main>
     <div class="container">
-        <h3 class="accordion-title" on:click={handleClick}>Applicant Details</h3>
+        <h3 class="accordion-title" on:click={handleClick}>Applicant Details<span class="mandatory">*</span></h3>
         {#if open}
             <div class="active" transition:slide>
                 <TextField
@@ -86,6 +86,12 @@
         box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
         /* box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset; */
     }
-
+     
+    .mandatory{
+        color: red;
+        size: 12px;
+        font-weight: lighter;
+        margin-left: 2px;
+    }
 
 </style>

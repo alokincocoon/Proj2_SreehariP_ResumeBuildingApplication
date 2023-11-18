@@ -23,7 +23,7 @@
     }
 </script>
 <div class="content-box">
-    <h3 class="sub-title" on:click={handleClick}>Education</h3>
+    <h3 class="sub-title" on:click={handleClick}>Education<span class="mandatory">*</span></h3>
     {#if open}
     {#each education as educationData, i}
     <div class="Active" transition:slide>
@@ -86,5 +86,11 @@
         margin-bottom: 10px;
         box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
         /* box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset; */
+    }
+    .mandatory{
+        color: red;
+        size: 12px;
+        font-weight: lighter;
+        margin-left: 2px;
     }
 </style>

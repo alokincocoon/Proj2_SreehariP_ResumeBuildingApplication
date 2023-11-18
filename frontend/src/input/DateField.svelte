@@ -41,10 +41,12 @@
     }
 
     input[type="date"] {
-        width: 100%;
-        height: 43px;
+        width: 40%;
+        height: 40px;
         padding-left: 5px;
-        border-radius: 0px;
+        border: none;
+        border-bottom: 2px inset teal;
+        border-radius: 5px;
         margin: 0px;
     }
 </style>

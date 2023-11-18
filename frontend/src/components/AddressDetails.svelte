@@ -14,9 +14,10 @@
         "China",
         "Qatar",
     ];
-    export let address_line="";
-    export let street_name="";
+    export let house_name="";
+    export let district="";
     export let city="";
+    export let state="";
     export let zip_code="";
     export let country= "";
     
@@ -24,20 +25,14 @@
 
 <main>
     <div class="content-box">
-        <h3 class="sub-title" on:click={handleClick}>Address Details</h3>
+        <h3 class="sub-title" on:click={handleClick}>Address Details<span class="mandatory">*</span></h3>
         {#if open}
             <div class="Active" transition:slide>
                 <TextField
-                    placeholder="Add Address Line"
+                    placeholder="Add House Name"
                     id="address"
-                    label="Address"
-                    bind:value={address_line}
-                />
-                <TextField
-                    placeholder="Add Street Name"
-                    id="street"
-                    label="Street"
-                    bind:value={street_name}
+                    label="House Name"
+                    bind:value={house_name}
                 />
                 <TextField
                     placeholder="Add City Name"
@@ -45,6 +40,20 @@
                     label="City"
                     bind:value={city}
                 />
+                <TextField
+                    placeholder="Add District Name"
+                    id="district"
+                    label="District"
+                    bind:value={district}
+                />
+                
+                <TextField
+                    placeholder="Add State Name"
+                    id="state"
+                    label="State"
+                    bind:value={state}
+                />
+
                 <SelectField
                     label="Country"
                     options={countryOptions}
@@ -81,5 +90,11 @@
         margin-bottom: 10px;
         box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
         /* box-shadow: 0 20px 10px -20px rgba(0,0,0,0.45) inset, 0 -20px 10px -20px rgba(0,0,0,0.45) inset; */
+    }
+    .mandatory{
+        color: red;
+        size: 12px;
+        font-weight: lighter;
+        margin-left: 2px;
     }
 </style>

@@ -1,7 +1,7 @@
 <script>
     // export let type = "";
     export let id = "";
-    export let placeHolder = "";
+    export let placeholder = "";
     export let label = "";
     export let value;
 </script>
@@ -13,7 +13,7 @@
                 <label for={id}>{label}</label>
             </div>
             <div class="url-input">
-                <input {id} type="url" {placeHolder} bind:value />
+                <input {id} type="url" {placeholder} bind:value />
                 <!-- <input {id} type="text" {placeholder} /> -->
             </div>
         </div>
@@ -23,6 +23,7 @@
 <style>
     .url-field {
         display: flex;
+        border-left: none;
         border: solid 0.1px gray;
         height: 43px;
     }
@@ -40,11 +41,18 @@
         height: 43px;
     }
     input[type="url"] {
-        width: 100%;
+        /* width: 100%;
         height: 43px;
         padding-left: 5px;
         border: none;
         border-radius: 0px;
+        margin: 0px; */
+        width: 40%;
+        height: 40px;
+        padding-left: 5px;
+        border: none;
+        border-bottom: 2px inset teal;
+        border-radius: 5px;
         margin: 0px;
     }
 

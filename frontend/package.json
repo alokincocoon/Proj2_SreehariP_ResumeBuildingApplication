@@ -9,6 +9,7 @@
     "start": "sirv public --no-clear"
   },
   "devDependencies": {
+    "@iconify/icons-pepicons-print": "^1.2.5",
     "@rollup/plugin-commonjs": "^24.0.0",
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-terser": "^0.4.0",
@@ -19,7 +20,12 @@
     "svelte": "^3.55.0"
   },
   "dependencies": {
+    "@iconify/icons-mdi": "^1.2.48",
+    "@iconify/icons-pepicons-pop": "^1.2.5",
+    "@iconify/react": "^4.1.1",
+    "@iconify/svelte": "^3.1.4",
     "axios": "^1.6.1",
-    "sirv-cli": "^2.0.0"
+    "sirv-cli": "^2.0.0",
+    "svelte-spa-router": "^3.3.0"
   }
 }
