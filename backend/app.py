@@ -1,6 +1,7 @@
 import json
 from typing import Any
 from database import session
+from psycopg2.errors import InvalidDatetimeFormat
 # from litestar.middleware.cors import CORSMiddleware
 from litestar.config.cors import CORSConfig
 from litestar import Litestar, get, post, put, delete, Request
@@ -47,16 +48,18 @@ async def show_all_data() -> json:
     to display in the listing page.
     """
     records = session.query(ApplicantDetails).all()
-    all_records = {}
-    for record in records:
-        record_id = record.id
-        data = record.__dict__
-        data.pop("_sa_instance_state", None)
-        key = f"record_{record_id}"
-        value = data
-        all_records[key] = value
-        json_data = json.dumps(all_records)
-    return json_data
+    if records:
+        all_records = {}
+        for record in records:
+            record_id = record.id
+            data = record.__dict__
+            data.pop("_sa_instance_state", None)
+            key = f"record_{record_id}"
+            value = data
+            all_records[key] = value
+            json_data = json.dumps(all_records)
+        return json_data
+    
     
 @get("/resume/{field_id: int}", name="get_resume_by_id")
 async def show_data_by_id(field_id: int) -> json:
@@ -117,7 +120,6 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
     corresponding tables. 'applicant_details' is an object of ApplicantDetails 
     model which is used to save the data to ApplicantDetails model.
     """
-    # print(data)
     commit_flag = False
     applicant_details  = ApplicantDetails(
         full_name=data["applicant_details"].get("full_name"), 
@@ -135,90 +137,92 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
     if commit_flag:
         records = session.query(ApplicantDetails).all()
         record_lis = [rec.__dict__ for rec in records]
-        *_, applicant_data = record_lis
+        *_, applicant_record = record_lis
 
     #  address_details object which saves data to AddressDetails model
     address_details = AddressDetails(
-		applicant_details_id=applicant_data["id"],
-        address_line=data["address_details"].get("address_line"),
-        street_name=data["address_details"].get("street_name"),
+		applicant_details_id=applicant_record["id"],
+        house_name=data["address_details"].get("house_name"),
+        district=data["address_details"].get("district"),
         city=data["address_details"].get("city"),
+        state=data["address_details"].get("state"),
         country=data["address_details"].get("country"),
         zip_code=data["address_details"].get("zip_code")
     )
     if address_details:
-        # pass
         session.add(address_details)
     
     # Here the values are retrieved from a nested dictionary
     # The input data resides in a list belonging to the parent dictionary.
-    if data["education"]:
-        levels_of_education = len(data["education"])
-        for entry in range(levels_of_education):
-            education = Education(
-				applicant_details_id=applicant_data["id"],
-                degree=data["education"][entry].get("degree"),
-                stream=data["education"][entry].get("stream"),
-                institute_name=data["education"][entry].get("institute_name"),
-                institute_location=data["education"][entry].get("institute_location"),
-                academic_year_start_date=data["education"][entry].get("academic_year_start_date"),
-                academic_year_end_date=data["education"][entry].get("academic_year_end_date")
-            )
-            if education:
-                session.add(education)
+    try:
+        if data["education"]:
+            levels_of_education = len(data["education"])
+            for entry in range(levels_of_education):
+                education = Education(
+                    applicant_details_id=applicant_record["id"],
+                    degree=data["education"][entry].get("degree"),
+                    stream=data["education"][entry].get("stream"),
+                    institute_name=data["education"][entry].get("institute_name"),
+                    institute_location=data["education"][entry].get("institute_location"),
+                    academic_year_start_date=data["education"][entry].get("academic_year_start_date"),
+                    academic_year_end_date=data["education"][entry].get("academic_year_end_date")
+                )
+                if education:
+                    session.add(education)
+    except InvalidDatetimeFormat as error:
+        session.rollback()
 
-    if data["work_experience"]:
-        places_worked = len(data["work_experience"])
-        for entry in range(places_worked):
-            work_experience = WorkExperience(
-				applicant_details_id=applicant_data["id"],
-                organization=data["work_experience"][entry].get("organization"),
-                job_role=data["work_experience"][entry].get("job_role"),
-                job_location=data["work_experience"][entry].get("job_location"),
-                key_roles=data["work_experience"][entry].get("key_roles"),
-                job_start_date=data["work_experience"][entry].get("job_start_date"),
-                job_end_date=data["work_experience"][entry].get("job_end_date")
-            )
-            if work_experience:
-                # pass
-                session.add(work_experience)
+    try:
+        if data["work_experience"]:
+            places_worked = len(data["work_experience"])
+            for entry in range(places_worked):
+                work_experience = WorkExperience(
+                    applicant_details_id=applicant_record["id"],
+                    organization=data["work_experience"][entry].get("organization"),
+                    job_role=data["work_experience"][entry].get("job_role"),
+                    job_location=data["work_experience"][entry].get("job_location"),
+                    key_roles=data["work_experience"][entry].get("key_roles"),
+                    job_start_date=data["work_experience"][entry].get("job_start_date"),
+                    job_end_date=data["work_experience"][entry].get("job_end_date")
+                )
+                if work_experience:
+                    session.add(work_experience)
+    except InvalidDatetimeFormat as error:
+        session.rollback()
     
     if data["social_media"]:
         existing_accounts = len(data["social_media"])
         for entry in range(existing_accounts):
             social_media = SocialMedia(
-				applicant_details_id=applicant_data["id"],
+				applicant_details_id=applicant_record["id"],
                 media_name=data["social_media"][entry].get("media_name"),
                 user_name=data["social_media"][entry].get("user_name"),
                 url=data["social_media"][entry].get("url")
             )
             if social_media:
-                # pass
                 session.add(social_media)
     
     if data["skills"]:
         number_of_skills = len(data["skills"])
         for entry in range(number_of_skills):
             skills = Skills(
-				applicant_details_id=applicant_data["id"],
+				applicant_details_id=applicant_record["id"],
                 skill_name=data["skills"][entry].get("skill_name"),
                 skill_level=data["skills"][entry].get("skill_level")
             )
             if skills:
-                # pass
                 session.add(skills)
 
     if data["projects"]:
         number_of_projects = len(data["projects"])
         for entry in range(number_of_projects):
             projects = Projects(
-				applicant_details_id=applicant_data["id"],
+				applicant_details_id=applicant_record["id"],
                 project_title=data["projects"][entry].get("project_title"),
                 tools_used=data["projects"][entry].get("tools_used"),
                 description=data["projects"][entry].get("description"),     
             )
             if projects:
-                # pass
                 session.add(projects)
 
     # The received data is commited to the database
@@ -226,29 +230,85 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
     session.close()
     return data
 
-@put("/edit-data/{applicant_id: int}")
+@put("/edit-resume/{applicant_id: int}")
 async def edit_data(applicant_id: int, data: dict[str, Any]) -> str:
-
     applicant_detail_record = session.query(ApplicantDetails).filter_by(id=applicant_id).first()
     if applicant_detail_record:
-        applicant_detail_record.full_name = data["applicant_details"]["full_name"]
-        applicant_detail_record.email_id = data["applicant_details"]["email_id"]
-        applicant_detail_record.phone_number = data["applicant_details"]["phone_number"]
-        applicant_detail_record.image_url = data["applicant_details"]["image_url"]
-        applicant_detail_record.summary = data["applicant_details"]["summary"]
-        session.add(applicant_detail_record)
+        record = applicant_detail_record
+        record.full_name = data["applicant_details"]["full_name"]
+        record.email_id = data["applicant_details"]["email_id"]
+        record.phone_number = data["applicant_details"]["phone_number"]
+        record.image_url = data["applicant_details"]["image_url"]
+        record.summary = data["applicant_details"]["summary"]
+        session.add(record)
 
-    address_detail_record = session.query(AddressDetails).filter_by(id=applicant_id).first()
+    address_detail_record = session.query(AddressDetails).filter_by(applicant_details_id=applicant_id).first()
     if address_detail_record:
-        address_detail_record.address_line = data["applicant_details"]["address_line"]
-        address_detail_record.street_name = data["applicant_details"]["street_name"]
-        address_detail_record.city = data["applicant_details"]["city"]
-        address_detail_record.country = data["applicant_details"]["country"]
-        address_detail_record.zip_code = data["applicant_details"]["zip_code"]
+        record = address_detail_record
+        record.house_name = data["address_details"]["house_name"]
+        record.city = data["address_details"]["city"]
+        record.district = data["address_details"]["district"]
+        record.state = data["address_details"]["state"]
+        record.country = data["address_details"]["country"]
+        record.zip_code = data["address_details"]["zip_code"]
         session.add(address_detail_record)
 
-    # education_detail_record = session.query(Education).filter_by(id=applicant_id).first()
+    education_detail_record = session.query(Education).filter_by(applicant_details_id=applicant_id).all()
+    if education_detail_record:
+        item = 0
+        for entry in education_detail_record:
+            entry.degree = data["education"][item]["degree"]
+            entry.stream = data["education"][item]["stream"]
+            entry.institute_name = data["education"][item]["institute_name"]
+            entry.institute_location = data["education"][item]["institute_location"]
+            entry.academic_year_start_date = data["education"][item]["academic_year_start_date"]
+            entry.academic_year_end_date = data["education"][item]["academic_year_end_date"]
+            session.add(entry)
+            item += 1
+
+    work_experience_record = session.query(WorkExperience).filter_by(applicant_details_id=applicant_id).all()   
+    if work_experience_record:
+        item = 0
+        for entry in work_experience_record:
+            entry.organization = data["work_experience"][item]["organization"]
+            entry.job_role = data["work_experience"][item]["job_role"]
+            entry.job_location = data["work_experience"][item]["job_location"]
+            entry.key_roles = data["work_experience"][item]["key_roles"]
+            entry.job_start_date = data["work_experience"][item]["job_start_date"]
+            entry.job_end_date = data["work_experience"][item]["job_end_date"]
+            session.add(entry)
+            item += 1
+
+    social_media_record = session.query(SocialMedia).filter_by(applicant_details_id=applicant_id).all()
+    if social_media_record:
+        item = 0
+        record_count = len(data["social_media"])
+        for entry in social_media_record:
+            entry.media_name = data["social_media"][item]["media_name"]
+            entry.user_name = data["social_media"][item]["user_name"]
+            entry.url = data["social_media"][item]["url"]
+            session.add(entry)
+            item += 1
     
+    skills_record = session.query(Skills).filter_by(applicant_details_id=applicant_id).all()
+    if skills_record:
+        item = 0
+        for entry in skills_record:
+            entry.skill_name = data["skills"][item]["skill_name"]
+            entry.skill_level = data["skills"][item]["skill_level"]
+            session.add(entry)
+            item += 1
+    
+    projects_record = session.query(Projects).filter_by(applicant_details_id=applicant_id).all()
+    if projects_record:
+        item = 0
+        for entry in projects_record:
+            entry.project_title = data["projects"][item]["project_title"]
+            entry.tools_used = data["projects"][item]["tools_used"]
+            entry.description = data["projects"][item]["description"]
+            session.add(entry)
+            item += 1
+
     session.commit()
     session.close()
     return "Updated"
