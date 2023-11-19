@@ -1,12 +1,25 @@
+import os
 import json
 from typing import Any
 from database import session
+from pyhtml2pdf import converter
 from psycopg2.errors import InvalidDatetimeFormat
 # from litestar.middleware.cors import CORSMiddleware
 from litestar.config.cors import CORSConfig
 from litestar import Litestar, get, post, put, delete, Request
-from models import ApplicantDetails, AddressDetails, Skills, Projects, Education, WorkExperience, SocialMedia
-
+from models import (
+    ApplicantDetails, 
+    AddressDetails, 
+    Skills, 
+    Projects, 
+    Education, 
+    WorkExperience, 
+    SocialMedia
+    )
+from pathlib import Path
+from litestar.contrib.jinja import JinjaTemplateEngine
+from litestar.response import Template
+from litestar.template.config import TemplateConfig
 
 def cleaned_record(record):
     """This method will clean the incoming record by removing 
@@ -41,6 +54,18 @@ def final_data(records):
                 record[key] = str(value)
             record_lis.append(record)
         return record_lis
+
+@get("/index/{field_id: int}")
+async def index(field_id: int) -> Template:
+    records = session.query(ApplicantDetails).filter_by(id=field_id).first().__dict__    
+    # temp = Template(template_name="resume_template.html.jinja2",  context={"records": records})
+    # print(temp.render)
+    # path = os.path.abspath('index.html.jinja2')
+    # path = ".."
+    # converter.convert("http://127.0.0.1:8000/index", 'sample1.pdf')
+    return Template(template_name="resume_template.html.jinja2",  context={"records": records})
+
+
 
 @get("/resumes/", name="get_all_resumes")
 async def show_all_data() -> json:
@@ -121,15 +146,15 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
     model which is used to save the data to ApplicantDetails model.
     """
     commit_flag = False
+    applicant_data = data.get("applicant_details")
     applicant_details  = ApplicantDetails(
-        full_name=data["applicant_details"].get("full_name"), 
-        email_id=data["applicant_details"].get("email_id"), 
-        phone_number=data["applicant_details"].get("phone_number"), 
-        image_url=data["applicant_details"].get("image_url"), 
-        summary=data["applicant_details"].get("summary")
+        full_name=applicant_data.get("full_name"), 
+        email_id=applicant_data.get("email_id"), 
+        phone_number=applicant_data.get("phone_number"), 
+        image_url=applicant_data.get("image_url"), 
+        summary=applicant_data.get("summary")
     )
     if applicant_details:
-        pass
         session.add(applicant_details)
         session.commit()
         commit_flag = True
@@ -140,14 +165,15 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
         *_, applicant_record = record_lis
 
     #  address_details object which saves data to AddressDetails model
+    address_data = data.get("address_details")
     address_details = AddressDetails(
 		applicant_details_id=applicant_record["id"],
-        house_name=data["address_details"].get("house_name"),
-        district=data["address_details"].get("district"),
-        city=data["address_details"].get("city"),
-        state=data["address_details"].get("state"),
-        country=data["address_details"].get("country"),
-        zip_code=data["address_details"].get("zip_code")
+        house_name=address_data.get("house_name"),
+        district=address_data.get("district"),
+        city=address_data.get("city"),
+        state=address_data.get("state"),
+        country=address_data.get("country"),
+        zip_code=address_data.get("zip_code")
     )
     if address_details:
         session.add(address_details)
@@ -158,14 +184,15 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
         if data["education"]:
             levels_of_education = len(data["education"])
             for entry in range(levels_of_education):
+                education_data = data.get("education")[entry]
                 education = Education(
                     applicant_details_id=applicant_record["id"],
-                    degree=data["education"][entry].get("degree"),
-                    stream=data["education"][entry].get("stream"),
-                    institute_name=data["education"][entry].get("institute_name"),
-                    institute_location=data["education"][entry].get("institute_location"),
-                    academic_year_start_date=data["education"][entry].get("academic_year_start_date"),
-                    academic_year_end_date=data["education"][entry].get("academic_year_end_date")
+                    degree=education_data.get("degree"),
+                    stream=education_data.get("stream"),
+                    institute_name=education_data.get("institute_name"),
+                    institute_location=education_data.get("institute_location"),
+                    academic_year_start_date=education_data.get("academic_year_start_date"),
+                    academic_year_end_date=education_data.get("academic_year_end_date")
                 )
                 if education:
                     session.add(education)
@@ -176,14 +203,15 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
         if data["work_experience"]:
             places_worked = len(data["work_experience"])
             for entry in range(places_worked):
+                work_exp_data = data.get("work_experience")[entry]
                 work_experience = WorkExperience(
                     applicant_details_id=applicant_record["id"],
-                    organization=data["work_experience"][entry].get("organization"),
-                    job_role=data["work_experience"][entry].get("job_role"),
-                    job_location=data["work_experience"][entry].get("job_location"),
-                    key_roles=data["work_experience"][entry].get("key_roles"),
-                    job_start_date=data["work_experience"][entry].get("job_start_date"),
-                    job_end_date=data["work_experience"][entry].get("job_end_date")
+                    organization=work_exp_data.get("organization"),
+                    job_role=work_exp_data.get("job_role"),
+                    job_location=work_exp_data.get("job_location"),
+                    key_roles=work_exp_data.get("key_roles"),
+                    job_start_date=work_exp_data.get("job_start_date"),
+                    job_end_date=work_exp_data.get("job_end_date")
                 )
                 if work_experience:
                     session.add(work_experience)
@@ -193,11 +221,12 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
     if data["social_media"]:
         existing_accounts = len(data["social_media"])
         for entry in range(existing_accounts):
+            social_media_data = data.get("social_media")[entry]
             social_media = SocialMedia(
 				applicant_details_id=applicant_record["id"],
-                media_name=data["social_media"][entry].get("media_name"),
-                user_name=data["social_media"][entry].get("user_name"),
-                url=data["social_media"][entry].get("url")
+                media_name=social_media_data.get("media_name"),
+                user_name=social_media_data.get("user_name"),
+                url=social_media_data.get("url")
             )
             if social_media:
                 session.add(social_media)
@@ -216,11 +245,12 @@ async def add_data(request: Request, data:  dict[str, Any]) -> json:
     if data["projects"]:
         number_of_projects = len(data["projects"])
         for entry in range(number_of_projects):
+            skills_data = data.get("projects")[entry]
             projects = Projects(
 				applicant_details_id=applicant_record["id"],
-                project_title=data["projects"][entry].get("project_title"),
-                tools_used=data["projects"][entry].get("tools_used"),
-                description=data["projects"][entry].get("description"),     
+                project_title=skills_data.get("project_title"),
+                tools_used=skills_data.get("tools_used"),
+                description=skills_data.get("description"),     
             )
             if projects:
                 session.add(projects)
@@ -235,34 +265,37 @@ async def edit_data(applicant_id: int, data: dict[str, Any]) -> str:
     applicant_detail_record = session.query(ApplicantDetails).filter_by(id=applicant_id).first()
     if applicant_detail_record:
         record = applicant_detail_record
-        record.full_name = data["applicant_details"]["full_name"]
-        record.email_id = data["applicant_details"]["email_id"]
-        record.phone_number = data["applicant_details"]["phone_number"]
-        record.image_url = data["applicant_details"]["image_url"]
-        record.summary = data["applicant_details"]["summary"]
+        applicant_data = data.get("applicant_details")
+        record.full_name = applicant_data.get("full_name")
+        record.email_id = applicant_data.get("email_id")
+        record.phone_number = applicant_data.get("phone_number")
+        record.image_url = applicant_data.get("image_url")
+        record.summary = applicant_data.get("summary")
         session.add(record)
 
     address_detail_record = session.query(AddressDetails).filter_by(applicant_details_id=applicant_id).first()
     if address_detail_record:
         record = address_detail_record
-        record.house_name = data["address_details"]["house_name"]
-        record.city = data["address_details"]["city"]
-        record.district = data["address_details"]["district"]
-        record.state = data["address_details"]["state"]
-        record.country = data["address_details"]["country"]
-        record.zip_code = data["address_details"]["zip_code"]
+        address_data = data.get("address_details")
+        record.house_name = address_data.get("house_name")
+        record.city = address_data.get("city")
+        record.district = address_data.get("district")
+        record.state = address_data.get("state")
+        record.country = address_data.get("country")
+        record.zip_code = address_data.get("zip_code")
         session.add(address_detail_record)
 
     education_detail_record = session.query(Education).filter_by(applicant_details_id=applicant_id).all()
     if education_detail_record:
         item = 0
         for entry in education_detail_record:
-            entry.degree = data["education"][item]["degree"]
-            entry.stream = data["education"][item]["stream"]
-            entry.institute_name = data["education"][item]["institute_name"]
-            entry.institute_location = data["education"][item]["institute_location"]
-            entry.academic_year_start_date = data["education"][item]["academic_year_start_date"]
-            entry.academic_year_end_date = data["education"][item]["academic_year_end_date"]
+            education_data = data.get("education")[item]
+            entry.degree = education_data.get("degree")
+            entry.stream = education_data.get("stream")
+            entry.institute_name = education_data.get("institute_name")
+            entry.institute_location = education_data.get("institute_location")
+            entry.academic_year_start_date = education_data.get("academic_year_start_date")
+            entry.academic_year_end_date = education_data.get("academic_year_end_date")
             session.add(entry)
             item += 1
 
@@ -270,23 +303,24 @@ async def edit_data(applicant_id: int, data: dict[str, Any]) -> str:
     if work_experience_record:
         item = 0
         for entry in work_experience_record:
-            entry.organization = data["work_experience"][item]["organization"]
-            entry.job_role = data["work_experience"][item]["job_role"]
-            entry.job_location = data["work_experience"][item]["job_location"]
-            entry.key_roles = data["work_experience"][item]["key_roles"]
-            entry.job_start_date = data["work_experience"][item]["job_start_date"]
-            entry.job_end_date = data["work_experience"][item]["job_end_date"]
+            work_data = data.get("work_experience")[item]
+            entry.organization = work_data.get("organization")
+            entry.job_role = work_data.get("job_role")
+            entry.job_location = work_data.get("job_location")
+            entry.key_roles = work_data.get("key_roles")
+            entry.job_start_date = work_data.get("job_start_date")
+            entry.job_end_date = work_data.get("job_end_date")
             session.add(entry)
             item += 1
 
     social_media_record = session.query(SocialMedia).filter_by(applicant_details_id=applicant_id).all()
     if social_media_record:
         item = 0
-        record_count = len(data["social_media"])
         for entry in social_media_record:
-            entry.media_name = data["social_media"][item]["media_name"]
-            entry.user_name = data["social_media"][item]["user_name"]
-            entry.url = data["social_media"][item]["url"]
+            media_data = data.get("social_media")[item]
+            entry.media_name = media_data.get("media_name")
+            entry.user_name = media_data.get("user_name")
+            entry.url = media_data.get("url")
             session.add(entry)
             item += 1
     
@@ -294,8 +328,9 @@ async def edit_data(applicant_id: int, data: dict[str, Any]) -> str:
     if skills_record:
         item = 0
         for entry in skills_record:
-            entry.skill_name = data["skills"][item]["skill_name"]
-            entry.skill_level = data["skills"][item]["skill_level"]
+            skills_data = data.get("skills")[item]
+            entry.skill_name = skills_data.get("skill_name")
+            entry.skill_level = skills_data.get("skill_level")
             session.add(entry)
             item += 1
     
@@ -303,9 +338,10 @@ async def edit_data(applicant_id: int, data: dict[str, Any]) -> str:
     if projects_record:
         item = 0
         for entry in projects_record:
-            entry.project_title = data["projects"][item]["project_title"]
-            entry.tools_used = data["projects"][item]["tools_used"]
-            entry.description = data["projects"][item]["description"]
+            projects_data = data.get("projects")[item]
+            entry.project_title = projects_data.get("project_title")
+            entry.tools_used = projects_data.get("tools_used")
+            entry.description = projects_data.get("description")
             session.add(entry)
             item += 1
 
@@ -327,6 +363,11 @@ cors_config = CORSConfig(
     allow_origins=["*"]
     )
 
+template_config = TemplateConfig(
+        directory=Path(__file__).parent / "templates",
+        engine=JinjaTemplateEngine,
+    )
+
 app = Litestar(
     	route_handlers=[
 			show_all_data, 
@@ -334,8 +375,10 @@ app = Litestar(
 			show_data_by_field, 
 			add_data, 
 			edit_data, 
-			delete_data
+			delete_data,
+            index
 		],
     	cors_config=cors_config,
-    	debug=True
+    	debug=True,
+        template_config=template_config
     )
