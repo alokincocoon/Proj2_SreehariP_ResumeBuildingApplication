@@ -1,11 +1,14 @@
 backend/__pycache__/
 backend/alembic/
 backend/env/
+backend/templates/pdf_file
 
 backend/alembic.ini
+backend/.env
 
 
 frontend/node_modules/
 frontend/public/build/
 
 frontend/.DS_Store
+
