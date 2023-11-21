@@ -24,8 +24,8 @@
     {#if open}
     {#each skills as skill, i}
     <div class="Active" transition:slide>
-        <TextField placeholder = "Add Skill Name" id = "skill-name" label = "Skill Name" bind:value={skill.skill_name} />
-        <SelectField label="Level" options={skill_options} bind:value={skill.skill_level} default_value="Select Skill Level" />
+        <TextField placeholder = "eg: coding/self learner/time management etc." id = "skill-name" label = "Skill Name" bind:value={skill.skill_name} />
+        <SelectField label="Skill Level" options={skill_options} bind:value={skill.skill_level} default_value="Select Skill Level" />
     </div>
     <div class="extra-fields">
     <button on:click|preventDefault={addSkill}>

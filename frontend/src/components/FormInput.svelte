@@ -19,7 +19,7 @@
 
     let UrlHome = "< Back To Home Page";
     let [singleEntry, multipleEntry] = [true, true];
-
+    const formReset = document.getElementById("form");
     export let form_data = {};
 
     export let succesMessage="";
@@ -39,6 +39,7 @@
     export let zip_code="";
     export let country= "";
 
+    
     export let education = [{ degree:'', stream:'', institute_name:'', institute_location:'', academic_year_start_date:'', academic_year_end_date:''}];
     export let social_media = [{ media_name: "", url: "", user_name: "" }];
     export let work_experience = [
@@ -54,7 +55,7 @@
     export let skills = [{ skill_name: "", skill_level: "" }];
     export let projects = [{ project_title:'', tools_used:'', description:''}];
     
- 
+
     async function handleSubmit() {
         if (
             validateFullName(full_name) &&
@@ -112,11 +113,12 @@
 
         const result = await response.json();
         console.log("Success:", result);
-        succesMessage = "Resume created successfully."
+        succesMessage = "Resume created successfully.";
+        document.getElementById('form-data').reset();
         } 
         catch (error) {
             console.error("Error:", error);
-            errorMessage = "Error! Could not create resume"
+            errorMessage = "Error! Could not create resume";
         }
         console.log(form_data);
         window.scrollTo(0,0);
@@ -129,7 +131,8 @@
     
 </script>
 
-<main><div class="form-heading">
+<main>
+    <div class="form-heading">
     {#if errorMessage}
     <div class="alert">
       <span class="closebtn" on:click={() => (errorMessage = "")}>&times;</span>
@@ -147,7 +150,7 @@
     <a href="#/">{UrlHome}</a>
     <h2>Create Your Resume</h2>
 </div>
-<form on:submit|preventDefault={handleSubmit}>
+<form on:submit|preventDefault={handleSubmit} id="form-data">
     <ApplicantDetails
         bind:full_name
         bind:email_id
@@ -186,7 +189,8 @@
     />
 
     <div class="button-group">
-        <Button typeOfButton="cancel" buttonLabel="Cancel" />
+        <a href="#/">
+        <Button typeOfButton="cancel" buttonLabel="Cancel" type="button"/></a>
         <Button typeOfButton="save" buttonLabel="Save" type="submit" />
     </div>
 </form>
@@ -206,7 +210,7 @@
     }
     .button-group {
         display: flex;
-        justify-content: end;
+        justify-content: center;
     }
     .alert p, .success p {
     color: #252525;

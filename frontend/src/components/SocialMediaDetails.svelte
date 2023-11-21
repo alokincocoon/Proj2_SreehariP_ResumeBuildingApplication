@@ -31,19 +31,19 @@
         {#each social_media as mediaData, i}
             <div class="Active" transition:slide>
                 <TextField
-                    placeholder="Add Network"
+                    placeholder="eg: LinkedIn/Instagram/Facebook (can give GitHub too)"
                     id="network"
-                    label="Network"
+                    label="Media Name"
                     bind:value={mediaData.media_name}
                 />
                 <UrlField
-                    placeholder="Add URL"
+                    placeholder="eg: www.medianame.com/username"
                     id="network-url"
-                    label="URL"
+                    label="Profile URL"
                     bind:value={mediaData.url}
                 />
                 <TextField
-                    placeholder="Add User Name"
+                    placeholder="eg: user_name@123"
                     id="user-name"
                     label="User Name"
                     bind:value={mediaData.user_name}

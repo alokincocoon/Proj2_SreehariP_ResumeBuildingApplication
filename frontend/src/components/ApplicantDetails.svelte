@@ -18,39 +18,39 @@
 
 <main>
     <div class="container">
-        <h3 class="accordion-title" on:click={handleClick}>Applicant Details<span class="mandatory">*</span></h3>
+        <h3 class="accordion-title" on:click={handleClick}>Personal Information<span class="mandatory">*</span></h3>
         {#if open}
             <div class="active" transition:slide>
                 <TextField
-                    placeholder="Add Name"
+                    placeholder="eg: John Doe"
                     id="name"
-                    label="Name"
+                    label="Full Name"
                    
                     bind:value = "{full_name}"
                 />
                 <EmailField 
-                    placeholder="Add Email" 
+                    placeholder="eg: abc@address.com" 
                     id="email" 
-                    label="Email"  
+                    label="Email ID"  
                     bind:value = "{email_id}"
                 />
 
                 <TextField
-                    placeholder="Add Phone Number"
+                    placeholder="eg: 9876543210"
                     id="phone"
-                    label="Phone"
+                    label="Phone Number"
                     
                     bind:value = "{phone_number}"
                 />
                 <UrlField
-                    placeholder="Add Image URL"
+                    placeholder="A valid link of Google Drive/Dropbox/Onedrive"
                     id="image-url"
                     label="Image URL"
                     
                     bind:value = "{image_url}"
                 />
                 <TextField
-                    placeholder="Add Summary"
+                    placeholder="Enter your profile summary"
                     id="summary"
                     label="Summary"
                     

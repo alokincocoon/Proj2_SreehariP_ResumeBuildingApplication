@@ -1,8 +1,6 @@
 <script>
     import FormInput from "./components/FormInput.svelte";
     import HomePage from "./pages/HomePage.svelte";
-    // import InputPage from "./pages/InputPage.svelte";	
-	
 	import Router from "svelte-spa-router"
 
 	let routes = {
@@ -11,9 +9,7 @@
 	}
 </script>
 
-
 	<Router {routes}/>
-
 
 <style>
  

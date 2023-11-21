@@ -24,9 +24,9 @@
     {#if open}
     {#each projects as projectData, i}
     <div class="Active" transition:slide>
-        <TextField placeholder = "Add Project Title" id = "project-title" label = "Project Title" bind:value={projectData.project_title} />
-        <TextField placeholder = "Add Skills" id = "skills" label = "Skills" bind:value={projectData.tools_used}/>
-        <TextField placeholder = "Add Description" id = "description" label = "Description" bind:value={projectData.description}/>
+        <TextField placeholder = "Enter your project title" id = "project-title" label = "Project Title" bind:value={projectData.project_title} />
+        <TextField placeholder = "Enter the skills/tools you learned/used for this project" id = "skills" label = "Skills" bind:value={projectData.tools_used}/>
+        <TextField placeholder = "Enter a brief description of the project" id = "description" label = "Description" bind:value={projectData.description}/>
     </div>
     <div class="extra-field">
         <button on:click|preventDefault={addProject}>

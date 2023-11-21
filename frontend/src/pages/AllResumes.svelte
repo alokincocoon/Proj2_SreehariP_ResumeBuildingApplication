@@ -2,11 +2,15 @@
     import Icon from "@iconify/svelte";
     import dotsY from "@iconify/icons-pepicons-pop/dots-y";
     import { onMount } from "svelte";
+    // import PreviewResume from "./PreviewResume.svelte";
+    export let search;
   
     let showMenu = false;
     let selected = null;
     let deleteId = "";
-
+    let downloadId = "";
+    let downloadMessage = "";
+    let email;
     function toggleMenu(id) {
       if (selected === id){
         showMenu = !showMenu;
@@ -38,17 +42,38 @@
       {
         method: "DELETE"
       });
+      document.location.reload();
     }
+    
+    async function downloadResume(res_id){
+      downloadId = res_id;
+      await fetch(`http://127.0.0.1:8000/download/${downloadId}`,
+      {
+        method: "GET"
+      });
+      downloadMessage = "Resume downloaded successfully"
+    }
+   
   </script>
   
   <main>
+    
+
+
+
+    {#if downloadMessage}
+    <div class="success">
+      <span class="closebtn" on:click={() => (downloadMessage = "")}>&times;</span>
+      <p>{downloadMessage}</p>
+    </div>
+    {/if}
     <table>
       <thead>
         <tr class="heading">
           <th>ID</th>
           <th>Full Name</th>
           <th>Phone Number</th>
-          <th>Image URL</th>
+          <th>Email ID</th>
           <th id="icon_heading"></th>
         </tr>
       </thead>
@@ -73,15 +98,17 @@
           <td>{value.id}</td>
           <td>{value.full_name}</td>
           <td>{value.phone_number}</td>
-          <td>{value.image_url}</td>
+          <td>{value.email_id}</td>
+          
           <td id="icon_column">
             <div class="IconContainer" on:click={() => toggleMenu(value.id)}>
               <Icon icon={dotsY} />
             </div>
             {#if showMenu && selected === value.id}
-            <div class="dropdown-content">
+            <div class="dropdown-content">             
+              <button on:click={() => {showMenu = false; downloadResume(value.id) }}>Download</button>
               <button on:click={() => {showMenu = false;}}>Edit</button>
-              <button on:click={() => {showMenu = false; deleteRecordModel(value.id)}}>Delete</button>
+              <button on:click={() => {showMenu = false; deleteRecordModel(value.id) }}>Delete</button>
             </div>
           {/if}  
           </td>
@@ -134,7 +161,7 @@
       border: 1px;
       border-radius: 5px;
       /* background: none; */
-      height: 78px;
+      height: 110px;
       padding: 5px; 
       background-color: rgb(240, 235, 235);
 
@@ -159,9 +186,9 @@
     #icon_heading {
       width: 138px;
     }
-    .dropdown-content a {
+    /* .dropdown-content a {
       margin-bottom: 7px;
-    }
+    } */
 
     /* delete model */
     .delete-page {
@@ -212,4 +239,35 @@
     text-align: center;
   }
 
+   /* download message css */
+  .success p {
+    color: #252525;
+    font-size: 20px;
+    height: 13px;
+    margin-left: 6px;
+  }
+ 
+  .success{
+    padding: 8px;
+    background-color: rgb(150, 247, 156);
+    color: rgb(0, 0, 0);
+    margin-bottom: 15px;
+    text-align: center;
+    margin: 0 auto;
+    width: 50%;
+    margin-top: 9px;
+  }
+  /* The close button */
+  .closebtn {
+    margin-left: 15px;
+    color: rgb(0, 0, 0);
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+   
   </style>

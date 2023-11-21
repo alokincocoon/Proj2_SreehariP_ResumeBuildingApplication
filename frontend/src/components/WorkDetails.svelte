@@ -25,44 +25,44 @@
 </script>
 
 <div class="content-box">
-    <h3 class="sub-title" on:click={handleClick}>Work</h3>
+    <h3 class="sub-title" on:click={handleClick}>Work Experience</h3>
     {#if open}
     {#each work_experience as work_data, i}
         <div class="Active" transition:slide>
             <TextField
-                placeholder="Add Organisation"
+                placeholder="Enter the name of organisation"
                 id="organisation"
                 label="Organisation"
                 bind:value="{work_data.organization}"
             />
             <TextField
-                placeholder="Add Job Role"
+                placeholder="Enter your job role or designation"
                 id="job-role"
                 label="Job Role"
                 bind:value="{work_data.job_role}"
             />
             <TextField
-                placeholder="Add Job Location"
+                placeholder="Enter job location"
                 id="job-location"
                 label="Job Location"
                 bind:value="{work_data.job_location}"
             />
             <TextField
-                placeholder="Add Key Roles "
+                placeholder="Enter the key responsibilities you took"
                 id="key-roles"
-                label="Key Roles"
+                label="Key Responsibilities"
                 bind:value="{work_data.key_roles}"
             />
             <DateField
                 placeholder="Add Start Date"
                 id="start-date"
-                label="Start Date"
+                label="Date of joining"
                 bind:value="{work_data.job_start_date}"
             />
             <DateField
                 placeholder="Add End Date"
                 id="end-date"
-                label="End Date"
+                label="Date of termination"
                 bind:value="{work_data.job_end_date}"
             />
         </div>

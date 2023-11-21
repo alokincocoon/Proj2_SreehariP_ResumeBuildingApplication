@@ -29,26 +29,26 @@
         {#if open}
             <div class="Active" transition:slide>
                 <TextField
-                    placeholder="Add House Name"
+                    placeholder="eg: House Name/Flat No./Building Name"
                     id="address"
                     label="House Name"
                     bind:value={house_name}
                 />
                 <TextField
-                    placeholder="Add City Name"
+                    placeholder="eg: City/Village/Municipality Name"
                     id="city"
-                    label="City"
+                    label="Locality"
                     bind:value={city}
                 />
                 <TextField
-                    placeholder="Add District Name"
+                    placeholder="Enter District Name"
                     id="district"
                     label="District"
                     bind:value={district}
                 />
                 
                 <TextField
-                    placeholder="Add State Name"
+                    placeholder="Enter State Name"
                     id="state"
                     label="State"
                     bind:value={state}
@@ -61,7 +61,7 @@
                     default_value="Choose your Country"
                 />
                 <TextField
-                    placeholder="Add Pincode"
+                    placeholder="Enter your pincode"
                     id="pincode"
                     label="Pincode"
                     bind:value={zip_code}
