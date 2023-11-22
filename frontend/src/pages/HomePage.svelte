@@ -3,10 +3,12 @@
     import dotsY from "@iconify/icons-pepicons-pop/dots-y";
     import { onMount } from "svelte";
     
+    
     let showMenu = false;
     let selected = null;
     let deleteId = "";
     let downloadId = "";
+    let recordId = "";
     let downloadMessage = "";
     let emailId = null;
     let data = [];
@@ -77,6 +79,15 @@
     }
     document.getElementById("search-item").value = "";
     }
+
+    function editResume(edit){
+      recordId = edit;
+      // console.log(recordId);
+      window.history.pushState({recordId}, null, "#/EditData");
+      document.location.reload();
+      dispatchEvent(new Event('popstate'));
+
+    }
     
   </script>
   <body>
@@ -140,14 +151,14 @@
           <td>{searchData.email_id}</td>
           
           <td id="icon_column">
-            <div class="IconContainer" on:click={() => toggleMenu(value.id)}>
+            <div class="IconContainer" on:click={() => toggleMenu(searchData.id)}>
               <Icon icon={dotsY} />
             </div>
-            {#if showMenu && selected === value.id}
+            {#if showMenu && selected === searchData.id}
             <div class="dropdown-content">             
-              <button on:click={() => {showMenu = false; downloadResume(value.id) }}>Download</button>
-              <button on:click={() => {showMenu = false;}}>Edit</button>
-              <button on:click={() => {showMenu = false; deleteRecordModel(value.id) }}>Delete</button>
+              <button on:click={() => {showMenu = false; downloadResume(searchData.id) }}>Download</button>
+              <button on:click={() => {showMenu = false; editResume(searchData.id)}}>Edit</button>
+              <button on:click={() => {showMenu = false; deleteRecordModel(searchData.id) }}>Delete</button>
             </div>
           {/if}  
           </td>
@@ -169,7 +180,7 @@
               {#if showMenu && selected === value.id}
               <div class="dropdown-content">             
                 <button on:click={() => {showMenu = false; downloadResume(value.id) }}>Download</button>
-                <button on:click={() => {showMenu = false;}}>Edit</button>
+                <button on:click={() => {showMenu = false; editResume(value.id) }}>Edit</button>
                 <button on:click={() => {showMenu = false; deleteRecordModel(value.id) }}>Delete</button>
               </div>
             {/if}  
