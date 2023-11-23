@@ -5,6 +5,7 @@ from database import session
 from pyhtml2pdf import converter
 from psycopg2.errors import InvalidDatetimeFormat
 from litestar.config.cors import CORSConfig
+from litestar.exceptions.http_exceptions import NotFoundException
 from litestar import Litestar, get, post, put, delete, Request
 from models import (
     ApplicantDetails,
@@ -19,7 +20,7 @@ from pathlib import Path
 from litestar.response import Template
 from litestar.template.config import TemplateConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
-from create_pdf import custom_template
+from create_pdf import create_pdf
 from send_email import send_email
 
 
@@ -40,24 +41,12 @@ def final_data(records):
     result will always be a list of dictionaries.
     """
     record_lis = []
-    if records.count() == 1:
-        record = records.first().__dict__
-        record = cleaned_record(record)
-        new_record = {}
-        if record:
-            for key, value in record.items():
-                new_record[key] = str(value)
-            record_lis.append(new_record)
-        return record_lis
-
-    elif records.count() > 1:
-        for record in records.all():
-            record = cleaned_record(record.__dict__)
-            for key, value in record.items():
-                record[key] = str(value)
-            record_lis.append(record)
-        return record_lis
-
+    for record in records.all():
+        record = cleaned_record(record.__dict__)
+        for key, value in record.items():
+            record[key] = str(value)
+        record_lis.append(record)
+    return record_lis
 
 @get("/resumes/", name="get_all_resumes")
 async def show_all_resumes() -> json:
@@ -74,7 +63,7 @@ async def show_all_resumes() -> json:
             key = f"record_{record_id}"
             value = data
             all_records[key] = value
-            json_data = json.dumps(all_records)
+        json_data = json.dumps(all_records)
         return json_data
 
 
@@ -135,12 +124,19 @@ async def show_resume_by_id(field_id: int) -> json:
 @get("/find-resume/{field_val: str}", name="find_resume_by_field")
 async def show_resume_by_field(field_val: str) -> json:
     """This function will fetch records according to their email id."""
-    record = session.query(ApplicantDetails).filter_by(email_id=field_val).first()
-    data = record.__dict__
-    data.pop("_sa_instance_state", None)
-    json_data = json.dumps(data)
-    return json_data
-
+    
+    try:
+        records_lis = []
+        records = session.query(ApplicantDetails).filter_by(email_id=field_val).all()
+        for record in records:
+            data = record.__dict__
+            data.pop("_sa_instance_state", None)
+            records_lis.append(data)
+        json_data = json.dumps(records_lis)
+        return json_data
+    except AttributeError:
+        json.dumps("Record doesn't exist")
+    
 
 @get("/download/{field_id: int}")
 async def download_resume(field_id: int) -> str:
@@ -151,8 +147,20 @@ async def download_resume(field_id: int) -> str:
         .first()
         .__dict__
     )
-    email_data = custom_template(details, address)
-    send_email(email_data)
+    education = session.query(Education).filter_by(applicant_details_id=field_id)
+    work = session.query(WorkExperience).filter_by(applicant_details_id=field_id)
+    projects = session.query(Projects).filter_by(applicant_details_id=field_id)
+    skills = session.query(Skills).filter_by(applicant_details_id=field_id)
+    record_dict = {
+        "details":details,
+        "address": cleaned_record(address),
+        "education": final_data(education),
+        "work": final_data(work),
+        "projects": final_data(projects),
+        "skills": final_data(skills)
+    }
+    email_data = create_pdf(record_dict)
+    # send_email(email_data)
     return "Downloaded"
     # return Template(template_name="resume_template.html.jinja2",  context={"records": records})
 
@@ -289,7 +297,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
 
 
 @put("/edit-resume/{applicant_id: int}")
-async def edit_resume(applicant_id: int, data: dict[str, Any]) -> str:
+async def edit_resume(applicant_id: int, data: dict[str, Any]) -> json:
     applicant_detail_record = (
         session.query(ApplicantDetails).filter_by(id=applicant_id).first()
     )
@@ -403,7 +411,7 @@ async def edit_resume(applicant_id: int, data: dict[str, Any]) -> str:
 
     session.commit()
     session.close()
-    return "Record updated."
+    return json.dumps(data)
 
 
 @delete("/delete-resume/{applicant_id: int}")
