@@ -1,11 +1,8 @@
-import os
 import json
 from typing import Any
 from database import session
-from pyhtml2pdf import converter
 from psycopg2.errors import InvalidDatetimeFormat
 from litestar.config.cors import CORSConfig
-from litestar.exceptions.http_exceptions import NotFoundException
 from litestar import Litestar, get, post, put, delete, Request
 from models import (
     ApplicantDetails,
@@ -140,6 +137,9 @@ async def show_resume_by_field(field_val: str) -> json:
 
 @get("/download/{field_id: int}")
 async def download_resume(field_id: int) -> str:
+    """ This function is to download the resume in PDF format
+    and to send it via email to the given email id.
+    """
     details = session.query(ApplicantDetails).filter_by(id=field_id).first().__dict__
     address = (
         session.query(AddressDetails)
@@ -159,8 +159,15 @@ async def download_resume(field_id: int) -> str:
         "projects": final_data(projects),
         "skills": final_data(skills)
     }
+
+    # The function create_pdf will generate the PDF
+    # and return the filename of PDF and an email id
     email_data = create_pdf(record_dict)
-    # send_email(email_data)
+
+    # The data is further passed on to this function
+    # which will send the resume via email
+    send_email(email_data)
+
     return "Downloaded"
     # return Template(template_name="resume_template.html.jinja2",  context={"records": records})
 
@@ -187,15 +194,27 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
         commit_flag = True
 
     if commit_flag:
+        """ Here the id of the record generated in the above 
+        ApplicantDetails model is fetched. When the flag is true
+        a record has been generated in the above model. 
+        Then the ID of the last generated record is retrieved
+        which will be passed on to other models as the foreign key.
+        """
+
+        # Fetching all records
         records = session.query(ApplicantDetails).all()
+
+        # cretaing a list of dictionaries of above records
         record_lis = [rec.__dict__ for rec in records]
+
+        # Fetching only the last record from above list
         *_, applicant_record = record_lis
 
     #  address_details object which saves data to AddressDetails model
     address_data = data.get("address_details")
 
     address_details = AddressDetails(
-        applicant_details_id=applicant_record["id"],
+        applicant_details_id=applicant_record.get("id"),
         house_name=address_data.get("house_name"),
         district=address_data.get("district"),
         city=address_data.get("city"),
@@ -215,7 +234,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
                 education_data = data.get("education")[entry]
 
                 education = Education(
-                    applicant_details_id=applicant_record["id"],
+                    applicant_details_id=applicant_record.get("id"),
                     degree=education_data.get("degree"),
                     stream=education_data.get("stream"),
                     institute_name=education_data.get("institute_name"),
@@ -236,17 +255,35 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
             for entry in range(places_worked):
                 work_exp_data = data.get("work_experience")[entry]
 
-                work_experience = WorkExperience(
-                    applicant_details_id=applicant_record["id"],
-                    organization=work_exp_data.get("organization"),
-                    job_role=work_exp_data.get("job_role"),
-                    job_location=work_exp_data.get("job_location"),
-                    key_roles=work_exp_data.get("key_roles"),
-                    job_start_date=work_exp_data.get("job_start_date"),
-                    job_end_date=work_exp_data.get("job_end_date"),
-                )
-                if work_experience:
-                    session.add(work_experience)
+                if (
+                    work_exp_data.get("job_start_date") != "" and
+                    work_exp_data.get("job_end_date") != ""
+                    ):
+
+                    work_experience = WorkExperience(
+                        applicant_details_id=applicant_record.get("id"),
+                        organization=work_exp_data.get("organization"),
+                        job_role=work_exp_data.get("job_role"),
+                        job_location=work_exp_data.get("job_location"),
+                        key_roles=work_exp_data.get("key_roles"),
+                        job_start_date=work_exp_data.get("job_start_date"),
+                        job_end_date=work_exp_data.get("job_end_date"),
+                    )
+                    if work_experience:
+                        session.add(work_experience)
+                else:
+                    work_experience = WorkExperience(
+                        applicant_details_id=applicant_record.get("id"),
+                        organization=work_exp_data.get("organization"),
+                        job_role=work_exp_data.get("job_role"),
+                        job_location=work_exp_data.get("job_location"),
+                        key_roles=work_exp_data.get("key_roles"),
+                        job_start_date=None,
+                        job_end_date=None,
+                    )
+                    if work_experience:
+                        session.add(work_experience)
+
     except InvalidDatetimeFormat as error:
         session.rollback()
 
@@ -256,7 +293,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
             social_media_data = data.get("social_media")[entry]
 
             social_media = SocialMedia(
-                applicant_details_id=applicant_record["id"],
+                applicant_details_id=applicant_record.get("id"),
                 media_name=social_media_data.get("media_name"),
                 user_name=social_media_data.get("user_name"),
                 url=social_media_data.get("url"),
@@ -270,7 +307,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
             skills_data = data.get("skills")[entry]
 
             skills = Skills(
-                applicant_details_id=applicant_record["id"],
+                applicant_details_id=applicant_record.get("id"),
                 skill_name=skills_data.get("skill_name"),
                 skill_level=skills_data.get("skill_level"),
             )
@@ -282,7 +319,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
         for entry in range(number_of_projects):
             skills_data = data.get("projects")[entry]
             projects = Projects(
-                applicant_details_id=applicant_record["id"],
+                applicant_details_id=applicant_record.get("id"),
                 project_title=skills_data.get("project_title"),
                 tools_used=skills_data.get("tools_used"),
                 description=skills_data.get("description"),

@@ -1,315 +1,301 @@
 <script>
-    import ApplicantDetails from "../components/ApplicantDetails.svelte";
-    import AddressDetails from "../components/AddressDetails.svelte";
-    import EducationDetails from "../components/EducationDetails.svelte";
-    import ProjectDetails from "../components/ProjectDetails.svelte";
-    import SkillDetails from "../components/SkillDetails.svelte";
-    import SocialMediaDetails from "../components/SocialMediaDetails.svelte";
-    import Button from "../input/Button.svelte";
-    import WorkDetails from "../components/WorkDetails.svelte";
-    import {
-        validateEmail,
-        validateFullName,
-        validatePhoneNumber,
-        validateSummary,
-        validateInput
-    } from "../validation/Validation";
-    import { onMount } from "svelte";
-    
+  import ApplicantDetails from "../components/ApplicantDetails.svelte";
+  import AddressDetails from "../components/AddressDetails.svelte";
+  import EducationDetails from "../components/EducationDetails.svelte";
+  import ProjectDetails from "../components/ProjectDetails.svelte";
+  import SkillDetails from "../components/SkillDetails.svelte";
+  import SocialMediaDetails from "../components/SocialMediaDetails.svelte";
+  import Button from "../input/Button.svelte";
+  import WorkDetails from "../components/WorkDetails.svelte";
+  import {
+    validateEmail,
+    validateFullName,
+    validatePhoneNumber,
+    validateSummary,
+    validateInput,
+  } from "../validation/Validation";
+  import { onMount } from "svelte";
 
-    let recordId;
-    let UrlHome = "< Back To Home Page";
-    let [singleEntry, multipleEntry] = [true, true];
-    const formReset = document.getElementById("form");
+  let recordId;
+  let UrlHome = "< Back To Home Page";
+  let [singleEntry, multipleEntry] = [true, true];
+  const formReset = document.getElementById("form");
 
-    export let succesMessage = "";
-    export let errorMessage = "";
+  export let succesMessage = "";
+  export let errorMessage = "";
 
-    export let full_name = "";
-    export let email_id = "";
-    export let phone_number = "";
-    export let image_url = "";
-    export let summary = "";
+  export let full_name = "";
+  export let email_id = "";
+  export let phone_number = "";
+  export let image_url = "";
+  export let summary = "";
 
-    export let house_name = "";
-    export let city = "";
-    export let district = "";
-    export let state = "";
-    export let zip_code = "";
-    export let country = "";
-    
-  
-    export let education = [];
-    export let social_media = [];
-    export let work_experience = [];
-    export let skills = [];
-    export let projects = [];
-    
-        onMount (async () => {
-        recordId = window.history.state.recordId;
+  export let house_name = "";
+  export let city = "";
+  export let district = "";
+  export let state = "";
+  export let zip_code = "";
+  export let country = "";
 
-        try{
-        const response = await fetch(`http://127.0.0.1:8000/resume/${recordId}`,{
-            method: "GET",
-            // body: JSON.stringify(form_data)
-        });
-        const result = await response.json();
-        console.log("Success:", result);
+  export let education = [];
+  export let social_media = [];
+  export let work_experience = [];
+  export let skills = [];
+  export let projects = [];
 
-        full_name = result.applicant_details.full_name;
-        email_id = result.applicant_details.email_id;
-        phone_number = result.applicant_details.phone_number;
-        image_url = result.applicant_details.image_url;
-        summary = result.applicant_details.summary;
+  onMount(async () => {
+    recordId = window.history.state.recordId;
 
-        house_name = result.address_details.house_name;
-        city = result.address_details.city;
-        district = result.address_details.district;
-        state = result.address_details.state;
-        country = result.address_details.country;
-        zip_code = result.address_details.zip_code;
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/resume/${recordId}`, {
+        method: "GET",
+        // body: JSON.stringify(form_data)
+      });
+      const result = await response.json();
+      // console.log("Success:", result);
 
-        // console.log(result.education.length);
-        for (let item = 0; item < result.education.length; item ++)
-        {   
-            let resultObj = result.education[item];
+      full_name = result.applicant_details.full_name;
+      email_id = result.applicant_details.email_id;
+      phone_number = result.applicant_details.phone_number;
+      image_url = result.applicant_details.image_url;
+      summary = result.applicant_details.summary;
 
-            let dict = { 
-            institute_name : resultObj["institute_name"],
-            institute_location : resultObj["institute_location"],
-            stream : resultObj["stream"],
-            degree : resultObj["degree"],
-            academic_year_start_date : resultObj["academic_year_start_date"],
-            academic_year_end_date : resultObj["academic_year_end_date"]
-            }
-            education.push(dict)
-        }
-        
-        for (let item = 0; item < result.social_media.length; item ++)
-        {   
-            let resultObj = result.social_media[item];
+      house_name = result.address_details.house_name;
+      city = result.address_details.city;
+      district = result.address_details.district;
+      state = result.address_details.state;
+      country = result.address_details.country;
+      zip_code = result.address_details.zip_code;
 
-            let dict = { 
-            media_name : resultObj["media_name"],
-            url : resultObj["url"],
-            user_name : resultObj["user_name"],
-            }
-            social_media.push(dict)
-        }
+      // console.log(result.education.length);
+      for (let item = 0; item < result.education.length; item++) {
+        let resultObj = result.education[item];
 
-        for (let item = 0; item < result.work_experience.length; item ++)
-        {   
-            let resultObj = result.work_experience[item];
+        let dict = {
+          institute_name: resultObj["institute_name"],
+          institute_location: resultObj["institute_location"],
+          stream: resultObj["stream"],
+          degree: resultObj["degree"],
+          academic_year_start_date: resultObj["academic_year_start_date"],
+          academic_year_end_date: resultObj["academic_year_end_date"],
+        };
+        education.push(dict);
+      }
 
-            let dict = { 
-            organization : resultObj["organization"],
-            job_location : resultObj["job_location"],
-            job_start_date : resultObj["job_start_date"],
-            job_role : resultObj["job_role"],
-            job_end_date : resultObj["job_end_date"],
-            key_roles : resultObj["key_roles"],
-            }
-            work_experience.push(dict)
-        }
-  
+      for (let item = 0; item < result.social_media.length; item++) {
+        let resultObj = result.social_media[item];
 
-        for (let item = 0; item < result.skills.length; item ++)
-        {   
-            let resultObj = result.skills[item];
+        let dict = {
+          media_name: resultObj["media_name"],
+          url: resultObj["url"],
+          user_name: resultObj["user_name"],
+        };
+        social_media.push(dict);
+      }
 
-            let dict = { 
-            skill_level : resultObj["skill_level"],
-            skill_name : resultObj["skill_name"],
-            }
-            skills.push(dict)
-        }
+      for (let item = 0; item < result.work_experience.length; item++) {
+        let resultObj = result.work_experience[item];
 
-        for (let item = 0; item < result.projects.length; item ++)
-        {   
-            let resultObj = result.projects[item];
+        let dict = {
+          organization: resultObj["organization"],
+          job_location: resultObj["job_location"],
+          job_start_date: resultObj["job_start_date"],
+          job_role: resultObj["job_role"],
+          job_end_date: resultObj["job_end_date"],
+          key_roles: resultObj["key_roles"],
+        };
+        work_experience.push(dict);
+      }
 
-            let dict = { 
-            description : resultObj["description"],
-            project_title : resultObj["project_title"],
-            tools_used : resultObj["tools_used"],
-            }
-            projects.push(dict)
-        }
+      for (let item = 0; item < result.skills.length; item++) {
+        let resultObj = result.skills[item];
 
+        let dict = {
+          skill_level: resultObj["skill_level"],
+          skill_name: resultObj["skill_name"],
+        };
+        skills.push(dict);
+      }
 
-        } 
-        catch (error) {
-            console.error("Error:", error);
-            errorMessage = "Error! Could not fetch resume";
-        }
-        // console.log(form_data);
-        window.scrollTo(0,0);
+      for (let item = 0; item < result.projects.length; item++) {
+        let resultObj = result.projects[item];
 
-    });
+        let dict = {
+          description: resultObj["description"],
+          project_title: resultObj["project_title"],
+          tools_used: resultObj["tools_used"],
+        };
+        projects.push(dict);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      errorMessage = "Error! Could not fetch resume";
+    }
+    // console.log(form_data);
+    window.scrollTo(0, 0);
+  });
 
-    async function handleSubmit() {
+  async function handleSubmit() {
+    if (
+      validateFullName(full_name) &&
+      validateEmail(email_id) &&
+      validatePhoneNumber(phone_number) &&
+      validateSummary(summary) &&
+      validateInput(house_name) &&
+      validateInput(district) &&
+      validateInput(city) &&
+      validateInput(state) &&
+      validateInput(country) &&
+      validateInput(zip_code)
+    ) {
+      singleEntry = true;
+    } else {
+      singleEntry = false;
+    }
 
-        let form_data = {
-        "applicant_details":{full_name, email_id, phone_number, image_url, summary},
-        "address_details":{house_name, city, district, state, country, zip_code},
+    for (let item = 0; item < education.length; item++) {
+      if (
+        education[item].degree == null ||
+        education[item].stream == null ||
+        education[item].institute_name == null ||
+        education[item].institute_location == null ||
+        education[item].academic_year_start_date == null ||
+        education[item].academic_year_end_date == null
+      ) {
+        multipleEntry = false;
+      }
+    }
+
+    if (singleEntry && multipleEntry) {
+      let form_data = {
+        applicant_details: {
+          full_name,
+          email_id,
+          phone_number,
+          image_url,
+          summary,
+        },
+        address_details: {
+          house_name,
+          city,
+          district,
+          state,
+          country,
+          zip_code,
+        },
         education,
         social_media,
         work_experience,
         skills,
-        projects
-        };
+        projects,
+      };
 
-        try{
-        const response = await fetch(`http://127.0.0.1:8000/edit-resume/${recordId}`,{
+      try {
+        const response = await fetch(
+          `http://127.0.0.1:8000/edit-resume/${recordId}`,
+          {
             method: "PUT",
             mode: "cors",
             cache: "no-cache",
             headers: {
-                "Content-Type": "application/json"
+              "Content-Type": "application/json",
             },
-            body: JSON.stringify(form_data)
-        });
-
+            body: JSON.stringify(form_data),
+          }
+        );
+        // console.log(JSON.stringify(form_data));
         const result = await response.json();
         console.log("Success:", result);
         succesMessage = "Resume successfully updated.";
-        document.getElementById('form-data').reset();
-        } 
-        catch (error) {
-            console.error("Error:", error);
-            errorMessage = "Error! Could not update resume";
-        }
-        console.log(form_data);
-        window.scrollTo(0,0);
-        // if (
-        //     validateFullName(full_name) &&
-        //     validateEmail(email_id) &&
-        //     validatePhoneNumber(phone_number) &&
-        //     validateSummary(summary) &&
-        //     validateInput(house_name) &&
-        //     validateInput(district) &&
-        //     validateInput(city) &&
-        //     validateInput(state) &&
-        //     validateInput(country) &&
-        //     validateInput(zip_code)
-        // ){
-        //     singleEntry = true;
-        // }
-        // else{
-        //     singleEntry = false;
-        // }
-
-        // for(let item = 0;item < education.length ; item++){
-        //     if (
-        //         education[item].degree == null ||
-        //         education[item].stream == null ||
-        //         education[item].institute_name == null ||
-        //         education[item].institute_location == null ||
-        //         education[item].academic_year_start_date == null ||
-        //         education[item].academic_year_end_date == null
-        //     ) {
-        //         multipleEntry = false;
-        //     }
-        // }
-
-        // if (singleEntry && multipleEntry)
-        // {
-        // form_data = 
-        // {
-        // "applicant_details":{full_name, email_id, phone_number, image_url, summary},
-        // "address_details":{house_name, city, district, state, country, zip_code},
-        // education,
-        // social_media,
-        // work_experience,
-        // skills,
-        // projects
-        // }; 
-    }  
-    
+      } catch (error) {
+        console.error("Error", error);
+        errorMessage = "Error! Could not update resume";
+      }
+      document.getElementById("form-data").reset();
+      window.scrollTo(0, 0);
+    } else {
+      errorMessage = "Error! Could not update resume";
+      window.scrollTo(0, 0);
+    }
+  }
 </script>
 
 <main>
-    <div class="form-heading">
+  <div class="form-heading">
     {#if errorMessage}
-    <div class="alert">
-      <span class="closebtn" on:click={() => (errorMessage = "")}>&times;</span>
-      <p>{errorMessage}</p>
-    </div>
+      <div class="alert">
+        <span class="closebtn" on:click={() => (errorMessage = "")}
+          >&times;</span
+        >
+        <p>{errorMessage}</p>
+      </div>
     {:else if succesMessage}
-    <div class="success">
-        <span class="closebtn" on:click={() => (succesMessage = "")}>&times;</span>
+      <div class="success">
+        <span class="closebtn" on:click={() => (succesMessage = "")}
+          >&times;</span
+        >
         <p>{succesMessage}</p>
       </div>
     {:else}
-    <p></p>
-  {/if}
+      <p />
+    {/if}
 
     <a href="#/">{UrlHome}</a>
-    <h2>Create Your Resume</h2>
-</div>
-<form on:submit|preventDefault={handleSubmit} id="form-data">
+    <h2>Edit Resume</h2>
+  </div>
+  <form on:submit|preventDefault={handleSubmit} id="form-data">
     <ApplicantDetails
-        bind:full_name
-        bind:email_id
-        bind:phone_number
-        bind:image_url
-        bind:summary
+      bind:full_name
+      bind:email_id
+      bind:phone_number
+      bind:image_url
+      bind:summary
     />
 
     <AddressDetails
-        bind:house_name
-        bind:city
-        bind:district
-        bind:state
-        bind:country
-        bind:zip_code
+      bind:house_name
+      bind:city
+      bind:district
+      bind:state
+      bind:country
+      bind:zip_code
     />
 
-    <EducationDetails
-        bind:education
-    />
+    <EducationDetails bind:education />
 
-    <SocialMediaDetails 
-        bind:social_media 
-    />
+    <SocialMediaDetails bind:social_media />
 
-    <WorkDetails 
-        bind:work_experience 
-    />
+    <WorkDetails bind:work_experience />
 
-    <SkillDetails 
-        bind:skills 
-    />
+    <SkillDetails bind:skills />
 
-    <ProjectDetails
-        bind:projects
-    />
+    <ProjectDetails bind:projects />
 
     <div class="button-group">
-        <a href="#/">
-        <Button typeOfButton="cancel" buttonLabel="Cancel" type="button"/></a>
-        <Button typeOfButton="save" buttonLabel="Save" type="submit" />
+      <a href="#/">
+        <Button typeOfButton="cancel" buttonLabel="Cancel" type="button" />
+      </a>
+      <Button typeOfButton="save" buttonLabel="Save" type="submit" />
     </div>
-</form>
-
+  </form>
 </main>
 
 <style>
-    /* @import url('https://fonts.googleapis.com/css?family=Muli&display=swap'); */
-    h2{ 
-        text-align: center;
-        font-family: 'Muli', sans-serif;
-    }
-   .form-heading {
-        width: 100%;
-        height: auto;
-        /* background-color: #f9fafb; */
-    }
-    .button-group {
-        display: flex;
-        justify-content: center;
-    }
-    .alert p, .success p {
+  /* @import url('https://fonts.googleapis.com/css?family=Muli&display=swap'); */
+  h2 {
+    text-align: center;
+    font-family: "Muli", sans-serif;
+  }
+  .form-heading {
+    width: 100%;
+    height: auto;
+    /* background-color: #f9fafb; */
+  }
+  .button-group {
+    display: flex;
+    justify-content: center;
+  }
+  .alert p {
     color: #252525;
     font-size: 20px;
     height: 13px;
@@ -324,10 +310,16 @@
     width: 98%;
     margin-top: 9px;
   }
-  .success{
+  .success p {
+    color: #001f02;
+    font-size: 20px;
+    height: 13px;
+    margin-left: 6px;
+  }
+  .success {
     padding: 8px;
-    background-color: rgb(150, 247, 156);
-    color: rgb(0, 0, 0);
+    background-color: #c8fcd3;
+    /* color: #02700a; */
     margin-bottom: 15px;
     text-align: center;
     width: 98%;
